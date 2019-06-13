@@ -13,12 +13,12 @@ int readRC(uint8_t pin)
     //float delta;
     for(int i = 0; i < 50; i++){
         float result = pulseIn(pin, HIGH, 20000);
-        //average += result;
-        average -= average/i;
-        average += result/i;
+        average += result;
+        //average -= average/i;
+        //average += result/i;
     }
-    //return average / 50;
-    return average;
+    return average / 50;
+    //return average;
 }
 
 /*
