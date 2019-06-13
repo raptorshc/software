@@ -186,6 +186,7 @@ void Raptor::rc_test()
     while (true)
     {
         float para_value = readRC(parafoil_pin);
+        //float para_value_2 = readRC(parafoil_pin);
         float cutdown_value = readRC(cutdown_pin);
         
 
@@ -235,7 +236,7 @@ void Raptor::rc_test()
             cutdown_sol->open();
             Serial << "Cutdown Solenoid: open.\n";
         }
-        if (para_value < 600) {    // highest pin out - right analog stick far right
+        if (para_value < 500) {    // highest pin out - right analog stick far right
             parafoil_sol->open();
             Serial << "Parafoil Solenoid Open. \n";
         }

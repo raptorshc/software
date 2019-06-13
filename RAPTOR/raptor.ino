@@ -28,7 +28,8 @@ void setup()
 
 void loop()
 {
-    raptor->launch();
+    raptor->rc_test();
+    // raptor->launch();
     // raptor->ascent();
     // raptor->descent();
     // raptor->landed();

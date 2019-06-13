@@ -5,12 +5,20 @@
 
 int readRC(uint8_t pin)
 {
+    // Increased the samples to 50 to smooth out th values from the RC controller
+    //
+    // TODO: Test this algorithm. It claims to offering averaging without 
+    // having to store every step of the averging process
     float average = 0;
-    for(int i = 0; i < 10; i++){
+    //float delta;
+    for(int i = 0; i < 50; i++){
         float result = pulseIn(pin, HIGH, 20000);
-        average += result;
+        //average += result;
+        average -= average/i;
+        average += result/i;
     }
-    return average / 10;
+    //return average / 50;
+    return average;
 }
 
 /*
