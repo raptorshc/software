@@ -186,10 +186,9 @@ void Raptor::rc_test()
     while (true)
     {
         float para_value = readRC(parafoil_pin);
-        //float para_value_2 = readRC(parafoil_pin);
         float cutdown_value = readRC(cutdown_pin);
         
-
+        /*
         if(para_value < 400.00)
         {
             for(int i = 0; i < 50; i++)
@@ -220,13 +219,16 @@ void Raptor::rc_test()
         }
         else
             Serial << "Good\n";
+        */
 
-        Serial << "Parafoil Value: " << para_value<< "\n";
-        Serial << "Cutdown Value: " << cutdown_value<< "\n\n";
+        //Serial << "Parafoil Value: " << para_value<< "\n";
+        //Serial << "Cutdown Value: " << cutdown_value<< "\n\n";
+        Serial << "Avg digital read (parafoil): " << para_value << "\n";
+        Serial << "Avg digital read (cutdown): " << cutdown_value << "\n\n";
         
-        
+        // controller off returns 596.00s
         // Serial << "Turn value: " << turn_value << " | Cutdown value: "  << cutdown_value << "\n";
-        if(cutdown_value > 700){ // highest pin output - left analog stick far up
+        if(cutdown_value > 120){ // highest pin output - left analog stick far up
             
             cutdown_sol->close();
             Serial << "Cutdown Solenoid: closed.\n";
@@ -234,15 +236,18 @@ void Raptor::rc_test()
         else{ // lowest pin output - left analog stick far down
             
             cutdown_sol->open();
-            Serial << "Cutdown Solenoid: open.\n";
+            Serial << "Cutdown Solenoid: Open.\n";
         }
-        if (para_value < 500) {    // highest pin out - right analog stick far right
-            parafoil_sol->open();
-            Serial << "Parafoil Solenoid Open. \n";
-        }
-        else{ // lowest pin out - right analog stick far left
+        
+        
+        if (para_value > 110) {    // highest pin out - right analog stick far right
             parafoil_sol->close();
             Serial << "Parafoil Solenoid Closed. \n";
+        }
+        else{ // lowest pin out - right analog stick far left
+            parafoil_sol->open();
+            Serial << "Parafoil Solenoid Open. \n";
+
         }
         
        

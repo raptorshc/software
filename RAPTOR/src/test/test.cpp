@@ -10,15 +10,28 @@ int readRC(uint8_t pin)
     // TODO: Test this algorithm. It claims to offering averaging without 
     // having to store every step of the averging process
     float average = 0;
-    //float delta;
-    for(int i = 0; i < 50; i++){
-        float result = pulseIn(pin, HIGH, 20000);
-        average += result;
+    float delta;
+    //for(int i = 0; i < 50; i++){
+    //    float result = pulseIn(pin, HIGH, 20000);
+    //    average += result;
         //average -= average/i;
         //average += result/i;
-    }
-    return average / 50;
-    //return average;
+    //}
+    //for (int j = 0; j < 2; j++)
+    //{
+        for (int i = 0; i < 10000; i++)
+        {
+            if (digitalRead(pin) == HIGH)
+            {
+                average++;
+            }
+        }
+      //  delta += average;
+    //}
+    //delta = delta/2;
+
+    return average;
+    //return average/50;
 }
 
 /*
