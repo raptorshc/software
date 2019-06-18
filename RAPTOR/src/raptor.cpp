@@ -187,15 +187,15 @@ void Raptor::rc_test()
     {
         float para_value = readRC(parafoil_pin);
         float cutdown_value = readRC(cutdown_pin);
-        
+                float cd_avg = 0;
         /*
-        if(para_value < 400.00)
+        if(para_value < 250.00)
         {
             for(int i = 0; i < 50; i++)
             {
                 para_value = readRC(parafoil_pin);
                 Serial << i << "\n";
-                if(para_value > 550.00)
+                if(para_value > 250.00)
                     break;
             }
             delay(10);
@@ -204,17 +204,19 @@ void Raptor::rc_test()
             
         }
 
-        else if(cutdown_value < 400.00)
+        else if(cutdown_value < 260.00)
         {
             for(int i =0; i < 50; i++)
             {
-                cutdown_value = readRC(cutdown_pin);
-                Serial << i << "\n";
-                if(cutdown_value > 550.00)
-                    break;
+                cd_avg += readRC(cutdown_pin);
+                //Serial << i << "\n";
+                //if(cutdown_value > 280.00)
+                //    break;
             }
+            cutdown_value = cd_avg/50;
+
             delay(10);
-            cutdown_value = readRC(cutdown_pin);
+            //cutdown_value = readRC(cutdown_pin);
             para_value = readRC(parafoil_pin);
         }
         else
@@ -228,25 +230,30 @@ void Raptor::rc_test()
         
         // controller off returns 596.00s
         // Serial << "Turn value: " << turn_value << " | Cutdown value: "  << cutdown_value << "\n";
-        if(cutdown_value > 120){ // highest pin output - left analog stick far up
+        if(cutdown_value > 260){ // highest pin output - left analog stick far up
             
             cutdown_sol->close();
             Serial << "Cutdown Solenoid: closed.\n";
         }
-        else{ // lowest pin output - left analog stick far down
+        else if (cutdown_value != 0){ // lowest pin output - left analog stick far down
             
             cutdown_sol->open();
             Serial << "Cutdown Solenoid: Open.\n";
+            //while(true)
+            //{
+            //    Serial << "CD FAIL: parafoil value at failure: " << para_value << ", cutdown value at failure: " << cutdown_value << "\n";
+            //}
         }
         
         
-        if (para_value > 110) {    // highest pin out - right analog stick far right
+        if (para_value > 250) {    // highest pin out - right analog stick far right
             parafoil_sol->close();
             Serial << "Parafoil Solenoid Closed. \n";
         }
         else{ // lowest pin out - right analog stick far left
             parafoil_sol->open();
             Serial << "Parafoil Solenoid Open. \n";
+            //Serial << "PF FAIL: parafoil value at failure: " << para_value << ", cutdown value at failure: " << cutdown_value << "\n";
 
         }
         
