@@ -5,6 +5,10 @@
 
 int readRC(uint8_t pin)
 {
+    // ==========================================================
+    // THIS DOESN'T WORK, DON'T USE IT WIHTOUT FIXING (6/23/2019)
+    // ===========================================================
+    //
     // Increased the samples to 50 to smooth out th values from the RC controller
     //
     // TODO: Test this algorithm. It claims to offering averaging without 
@@ -33,6 +37,39 @@ int readRC(uint8_t pin)
 
     return delta;
     //return average/50;
+}
+
+int Read_RC_Digital(uint8_t pin)
+{
+    int val;
+    int avg = 0;
+    int avg_cofficient = 3;
+
+    // Samples the digitalRead() for the number of avg_cofficient
+    for (int i = 0; i < avg_cofficient; i++)
+    {
+        val = digitalRead(pin);
+        if (val == 1)
+        {
+            avg++;
+        }
+        delay(10);
+    }
+
+    // Checks the avg value and return a '0' or '1' depending on if the avg is greater than 33% of its max value
+    // Greater than 33% of max = 1
+    // Less than 33% of max = 0
+    if (avg > (avg_cofficient/3))
+    {
+        val = 1;
+    }
+    else 
+    {
+        val = 0;
+    }
+
+    // Returns the '0' or '1'
+    return val;
 }
 
 /*

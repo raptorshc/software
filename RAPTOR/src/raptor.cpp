@@ -172,6 +172,8 @@ void Raptor::landed()
  */
 void Raptor::rc_test()
 {
+    // Solenoid close() = can be engaged 
+    // Solenoid open() = releases an engaged solenoid
     static const uint8_t parafoil_pin = 7;
     static const uint8_t cutdown_pin = 4;
 
@@ -185,87 +187,48 @@ void Raptor::rc_test()
     pilot->servo_init();
     while (true)
     {
-        float para_value = readRC(parafoil_pin);
-        float cutdown_value = readRC(cutdown_pin);
-                float cd_avg = 0;
-        /*
-        if(para_value < 250.00)
+        int para_value = Read_RC_Digital(parafoil_pin);
+        int cutdown_value = Read_RC_Digital(cutdown_pin);
+
+        // Prevents random noise saying that both switches are triggered
+        if(para_value == 1 && cutdown_value == 1)
         {
-            for(int i = 0; i < 50; i++)
-            {
-                para_value = readRC(parafoil_pin);
-                Serial << i << "\n";
-                if(para_value > 250.00)
-                    break;
-            }
-            delay(10);
-            cutdown_value = readRC(cutdown_pin);
-            para_value = readRC(parafoil_pin);
-            
+            para_value = 0;
+            cutdown_value = 0;
+            Serial << "Both HIGH\n";
         }
-
-        else if(cutdown_value < 260.00)
-        {
-            for(int i =0; i < 50; i++)
-            {
-                cd_avg += readRC(cutdown_pin);
-                //Serial << i << "\n";
-                //if(cutdown_value > 280.00)
-                //    break;
-            }
-            cutdown_value = cd_avg/50;
-
-            delay(10);
-            //cutdown_value = readRC(cutdown_pin);
-            para_value = readRC(parafoil_pin);
+       
+       // Outputs current value to serial
+        Serial << "Digital read (parafoil): " << para_value << "\n";
+        Serial << "Digital read (cutdown): " << cutdown_value << "\n\n";
+        
+        // Balloon/Drone cutdown logic
+        if(cutdown_value == 0)
+        { 
+            // right analog stick all the way up   
+            cutdown_sol->close();
+            Serial << "Cutdown Solenoid: Open.\n";
         }
         else
-            Serial << "Good\n";
-        */
-
-        //Serial << "Parafoil Value: " << para_value<< "\n";
-        //Serial << "Cutdown Value: " << cutdown_value<< "\n\n";
-        Serial << "Avg digital read (parafoil): " << para_value << "\n";
-        Serial << "Avg digital read (cutdown): " << cutdown_value << "\n\n";
-        
-        // controller off returns 596.00s
-        // Serial << "Turn value: " << turn_value << " | Cutdown value: "  << cutdown_value << "\n";
-        if(cutdown_value > 260){ // highest pin output - left analog stick far up
-            
-            cutdown_sol->close();
-            Serial << "Cutdown Solenoid: closed.\n";
-        }
-        else if (cutdown_value != 0){ // lowest pin output - left analog stick far down
-            
+        {     
             cutdown_sol->open();
-            Serial << "Cutdown Solenoid: Open.\n";
-            //while(true)
-            //{
-            //    Serial << "CD FAIL: parafoil value at failure: " << para_value << ", cutdown value at failure: " << cutdown_value << "\n";
-            //}
+            Serial << "Cutdown Solenoid: Closed.\n";
         }
         
-        
-        if (para_value > 250) {    // highest pin out - right analog stick far right
+        // Parafoil cutdown logic
+        if (para_value == 0) 
+        {    
+            // right analog stick all the way down
             parafoil_sol->close();
+            Serial << "Parafoil Solenoid Open. \n";
+        }
+        else
+        { 
+            parafoil_sol->open();
             Serial << "Parafoil Solenoid Closed. \n";
         }
-        else{ // lowest pin out - right analog stick far left
-            parafoil_sol->open();
-            Serial << "Parafoil Solenoid Open. \n";
-            //Serial << "PF FAIL: parafoil value at failure: " << para_value << ", cutdown value at failure: " << cutdown_value << "\n";
-
-        }
-        
-       
-        
-        // print_data();
     }
 }
-
-
-
-
 
 /*
  * print_data updates sensor readings then prints all relevant data to the serial pins.
