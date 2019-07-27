@@ -1,6 +1,6 @@
 /*
-  eeprom.h - 
-  
+  eeprom.h -
+
   Part of the RAPTOR project, authors: Sean Widmier, Colin Oberthur
 */
 #ifndef EEPROM_H__

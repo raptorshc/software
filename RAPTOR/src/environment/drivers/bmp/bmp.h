@@ -1,6 +1,6 @@
 /*
- * bmp.h - 
- * Library written for use with Adafruit BMP180 sensor.
+ * bmp.h -
+ * Class written for use with Adafruit BMP180 sensor.
  * Utilizes Adafruit BMP library
  * Part of the RAPTOR project, authors: Sean Widmier, Colin Oberthur
 */

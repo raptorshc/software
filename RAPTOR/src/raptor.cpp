@@ -6,12 +6,13 @@
 
 elapsedMillis time_elapsed;
 
-/* 
+/*
  * Arduino setup function, first function to be run.
  */
 Raptor::Raptor()
 {
     time_elapsed = 0;
+
     /* Buzzer and LEDs */
     pinMode(BZZ_DTA, OUTPUT);  // Set buzzer to output
     pinMode(LEDS_DTA, OUTPUT); // Set LEDs to output
@@ -22,19 +23,19 @@ Raptor::Raptor()
     parafoil_sol = new Solenoid(9, A0, A2);
     cutdown_sol = new Solenoid(8, A1, A3);
 
-    // startup_sequence();
+    startup_sequence();
 
     /* GPS */
     environment = new Environment();
-    environment->init(true); // for testing pcb
+    // environment->init(true); // for testing pcb
 
+    eeprom = new Prom();
+    pinMode(SET_BTN, OUTPUT);
     if (digitalRead(SET_BTN))
     {
         eeprom->write_state(flight_state, environment->bmp->baseline);
     }
 
-    eeprom = new Prom();
-    pinMode(SET_BTN, OUTPUT);
     if (!digitalRead(SET_BTN))
     {
         Serial << "Read EEPROM\n";
@@ -164,26 +165,6 @@ void Raptor::print_data()
     environment->update();
 
     /* Let's spray the serial port with a hose of data */
-    // gps stuff can remove
-    Serial.print("\nTime: ");
-    Serial.print(environment->gps->hour, DEC);
-    Serial.print(':');
-    Serial.print(environment->gps->minute, DEC);
-    Serial.print(':');
-    Serial.print(environment->gps->seconds, DEC);
-    Serial.print('.');
-    Serial.println(environment->gps->milliseconds);
-    Serial.print("Date: ");
-    Serial.print(environment->gps->day, DEC);
-    Serial.print('/');
-    Serial.print(environment->gps->month, DEC);
-    Serial.print("/20");
-    Serial.println(environment->gps->year, DEC);
-    Serial.print("Fix: ");
-    Serial.print((int)environment->gps->fix);
-    Serial.print(" quality: ");
-    Serial.println((int)environment->gps->fixquality);
-
     // time, temperature, pressure, altitude,
     Serial << time_elapsed << F(",") << environment->bmp->readTemperature() << F(",") << environment->bmp->readPressure()
            << F(",") << environment->bmp->getAltitude() << F(",");
@@ -201,8 +182,8 @@ void Raptor::print_data()
            << pilot->get_turn() << F(",") << flight_state << "\n"; // write everything to SD card
 }
 
-/* 
- *  startup_sequence intitializes our solenoids, servos, and sensors.
+/*
+ *  startup_sequence initializes our solenoids, servos, and sensors.
  *   If in flight state 0 (launch), performs a sequence that indicates board power,
  *   solenoid power, servo power, and successful sensor initialization.
  */
@@ -211,12 +192,10 @@ void Raptor::startup_sequence(void)
     // indicate board power with a buzzer beep if in flight state 0
     if (flight_state == 0)
     {
-        analogWrite(BZZ_DTA, 200); // turn on the buzzer for half a second
-        delay(500);
-        analogWrite(BZZ_DTA, 0);
+        beep(500);
     }
 
-    // intialize solenoids, should hear them click and see the indicator LEDs turn on
+    // initialize solenoids, should hear them click and see the indicator LEDs turn on
     parafoil_sol->close();
     parafoil_sol->read_switch();
 
@@ -241,20 +220,18 @@ void Raptor::startup_sequence(void)
         }
     }
     else
-    { // if the initialization was unsucessful and we're in flight state 1 blink 15 times
+    { // if the initialization was unsuccessful and we're in flight state 1 beep & blink 15 times
         if (flight_state == 0)
         {
             for (int i = 0; i < 15; i++)
             {
-                analogWrite(BZZ_DTA, 200);
-                blink_led(500);
-                analogWrite(BZZ_DTA, 0);
+                beep(500, true);
             }
         }
     }
 }
 
-/* 
+/*
  * blink_led toggles the LED, then delays for a certain length of time.
  *  Can be used to achieve a blink rate, but will delay the entire execution.
  */
@@ -262,4 +239,18 @@ void Raptor::blink_led(int length)
 {
     digitalWrite(LEDS_DTA, !digitalRead(LEDS_DTA));
     delay(length);
+}
+
+/*
+ * beep turns on the buzzer, delays for length, then turns off the buzzer.
+ *  Can optionally blink the led while the buzzer is on
+ */
+void Raptor::beep(int length, bool blink = false)
+{
+    analogWrite(BZZ_DTA, 200);
+    if (blink)
+        blink_led(length);
+    else
+        delay(length);
+    analogWrite(BZZ_DTA, 0);
 }

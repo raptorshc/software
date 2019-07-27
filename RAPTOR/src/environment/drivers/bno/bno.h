@@ -1,6 +1,6 @@
 /*
- * imu.h - 
- * Library written for use with Adafruit BNO055 sensor.
+ * bno.h -
+ * Class written for use with Adafruit BNO055 sensor.
  * Utilizes Adafruit BNO055 library.
  * Part of the RAPTOR project, authors: Sean Widmier, Colin Oberthur
 */

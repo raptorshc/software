@@ -1,5 +1,5 @@
 /*
-  environment.h - 
+  environment.h -
 	DESCRIPTION NEEDED.
 	Part of the RAPTOR project, authors: Sean Widmier, Colin Oberthur
 */

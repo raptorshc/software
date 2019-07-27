@@ -1,11 +1,13 @@
 /*
+  eeprom.h -
 
+  Part of the RAPTOR project, authors: Sean Widmier, Colin Oberthur
 */
 #include "eeprom.h"
 
 /* Public Methods */
-/* 
- * write_state deposits flight state and baseline pressure into the EEPROM. 
+/*
+ * write_state deposits flight state and baseline pressure into the EEPROM.
  */
 void Prom::write_state(uint8_t fs, float baseline)
 {
@@ -13,8 +15,8 @@ void Prom::write_state(uint8_t fs, float baseline)
     this->put(100, baseline); // baseline pressure always at address 100
 }
 
-/* 
- * read_state retrieves flight state and baseline pressure from the EEPROM. 
+/*
+ * read_state retrieves flight state and baseline pressure from the EEPROM.
  */
 void Prom::read_state(uint8_t *fs, float *baseline)
 {
