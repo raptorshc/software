@@ -181,53 +181,63 @@ void Raptor::rc_test()
     pinMode(cutdown_pin, INPUT);
     
     delay(1000); // wait 5 seconds before starting
-
+    
     Serial << "Starting RC Test!\n";
 
     pilot->servo_init();
     while (true)
     {
-        int para_value = Read_RC_Digital(parafoil_pin);
-        int cutdown_value = Read_RC_Digital(cutdown_pin);
-
+        //int para_value = Read_RC_Digital(parafoil_pin);
+        //int cutdown_value = Read_RC_Digital(cutdown_pin);
+        //int test = analogRead(A0);
+        int para_value = Read_RC_Analog(A1);
+        int cutdown_value = Read_RC_Analog(A0);
+        
+        Serial << "Parafoil: " << para_value << ", Cutdown: " << cutdown_value << "\n";
         // Prevents random noise saying that both switches are triggered
-        if(para_value == 1 && cutdown_value == 1)
-        {
-            para_value = 0;
-            cutdown_value = 0;
-            Serial << "Both HIGH\n";
-        }
+        
+        //if(para_value == 1 && cutdown_value == 0)
+        //{
+        //    para_value = 1022;
+        //    cutdown_value = 1022;
+        //    Serial << "Both HIGH\n";
+        //}
        
        // Outputs current value to serial
-        Serial << "Digital read (parafoil): " << para_value << "\n";
-        Serial << "Digital read (cutdown): " << cutdown_value << "\n\n";
+        //Serial << "Digital read (parafoil): " << para_value << "\n";
+        //Serial << "Digital read (cutdown): " << cutdown_value << "\n\n";
         
         // Balloon/Drone cutdown logic
-        if(cutdown_value == 0)
+        if(cutdown_value > 1000)
         { 
             // right analog stick all the way up   
             cutdown_sol->close();
-            Serial << "Cutdown Solenoid: Open.\n";
+            Serial << "Cutdown Solenoid: Closed.\n";
+            analogWrite(A2, 255);
         }
         else
         {     
             cutdown_sol->open();
-            Serial << "Cutdown Solenoid: Closed.\n";
+            Serial << "Cutdown Solenoid: Open.\n";
+            analogWrite(A2, 0);
         }
         
         // Parafoil cutdown logic
-        if (para_value == 0) 
+        if (para_value > 1000) 
         {    
             // right analog stick all the way down
             parafoil_sol->close();
-            Serial << "Parafoil Solenoid Open. \n";
+            Serial << "Parafoil Solenoid Closed. \n";
+            analogWrite(A3, 255);
         }
         else
         { 
             parafoil_sol->open();
-            Serial << "Parafoil Solenoid Closed. \n";
+            Serial << "Parafoil Solenoid Open. \n";
+            analogWrite(A3, 0);
         }
     }
+    
 }
 
 /*
