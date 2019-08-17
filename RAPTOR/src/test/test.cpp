@@ -1,5 +1,7 @@
 /*
-*
+  test.cpp - 
+    Collection of various testing functions.
+  Part of the RAPTOR project, authors: Sean Widmier, Colin Oberthur, Sean Mitchell
 */
 #include "test.h"
 
@@ -74,21 +76,17 @@ int Read_RC_Digital(uint8_t pin)
 
 int Read_RC_Analog(uint8_t pin)
 {
+    // Samples the digitalRead() for the number of avg_cofficient
+    // and the returns the avg of those samples
+
     int val;
     int avg = 0;
     int avg_cofficient = 3;
 
-    // Samples the digitalRead() for the number of avg_cofficient
     for (int i = 0; i < avg_cofficient; i++)
     {
         val = analogRead(pin);
-        //Serial << val;
         avg += val;
-        //if (val == 1)
-        //{
-        //    avg++;
-        //}
-        //delay(10);
     }
     avg = avg / avg_cofficient;
     return avg;

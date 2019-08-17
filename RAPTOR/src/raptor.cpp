@@ -187,21 +187,10 @@ void Raptor::rc_test()
     pilot->servo_init();
     while (true)
     {
-        //int para_value = Read_RC_Digital(parafoil_pin);
-        //int cutdown_value = Read_RC_Digital(cutdown_pin);
-        //int test = analogRead(A0);
-        int para_value = Read_RC_Analog(A1);
-        int cutdown_value = Read_RC_Analog(A0);
+        int para_value = Read_RC_Analog(A1);        // A1 is parafoil trigger
+        int cutdown_value = Read_RC_Analog(A0);     // A0 is cutdown trigger
         
         Serial << "Parafoil: " << para_value << ", Cutdown: " << cutdown_value << "\n";
-        // Prevents random noise saying that both switches are triggered
-        
-        //if(para_value == 1 && cutdown_value == 0)
-        //{
-        //    para_value = 1022;
-        //    cutdown_value = 1022;
-        //    Serial << "Both HIGH\n";
-        //}
        
        // Outputs current value to serial
         //Serial << "Digital read (parafoil): " << para_value << "\n";
@@ -213,13 +202,13 @@ void Raptor::rc_test()
             // right analog stick all the way up   
             cutdown_sol->close();
             Serial << "Cutdown Solenoid: Closed.\n";
-            analogWrite(A2, 255);
+            analogWrite(A2, 255);   // A2 is cutdown status LED
         }
         else
         {     
             cutdown_sol->open();
             Serial << "Cutdown Solenoid: Open.\n";
-            analogWrite(A2, 0);
+            analogWrite(A2, 0);     // A2 is cutdown status LED
         }
         
         // Parafoil cutdown logic
@@ -228,13 +217,13 @@ void Raptor::rc_test()
             // right analog stick all the way down
             parafoil_sol->close();
             Serial << "Parafoil Solenoid Closed. \n";
-            analogWrite(A3, 255);
+            analogWrite(A3, 255);   // A3 is parafoil status LED
         }
         else
         { 
             parafoil_sol->open();
             Serial << "Parafoil Solenoid Open. \n";
-            analogWrite(A3, 0);
+            analogWrite(A3, 0);     // A3 is parafoil status LED
         }
     }
     
