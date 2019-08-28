@@ -29,6 +29,7 @@ private:
   void startup_sequence();
   void blink_led(int length);
   void print_data();
+  void beep(int length, bool blink = false);
 
   Pilot *pilot;
   Prom *eeprom;

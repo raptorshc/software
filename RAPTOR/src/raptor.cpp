@@ -11,6 +11,9 @@
 /*
  * Arduino setup function, first function to be run.
  */
+
+static elapsedMillis time_elapsed;
+
 Raptor::Raptor()
 {
     time_elapsed = 0;
@@ -135,7 +138,7 @@ void Raptor::descent()
         didwake = true;
     }
 
-    fly_time = *environment->time_elapsed;
+    fly_time = time_elapsed;
     if (fly_time > FLY_DELAY)
     {                                        // don't want to constantly call fly
         pilot->fly(environment->gps->angle); // the pilot just needs our current angle to do his calculations
@@ -249,7 +252,7 @@ void Raptor::print_data()
 
     /* Let's spray the serial port with a hose of data */
     // time, temperature, pressure, altitude,
-    Serial << *environment->time_elapsed << F(",") << environment->bmp->readTemperature() << F(",") << environment->bmp->readPressure()
+    Serial << time_elapsed << F(",") << environment->bmp->readTemperature() << F(",") << environment->bmp->readPressure()
            << F(",") << environment->bmp->getAltitude() << F(",");
 
     // latitude, longitude, angle, (gps) altitude,
