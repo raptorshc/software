@@ -6,10 +6,7 @@
 #include "raptor.h"
 #include <Streaming.h> // http://arduiniana.org/libraries/streaming/
 
-// #define RC_TEST
-#include "guidance/drivers/servo/continuous_servo.h"
-
-elapsedMillis time_elapsed;
+#include "test/test.h"
 
 /*
  * Arduino setup function, first function to be run.
@@ -28,8 +25,6 @@ Raptor::Raptor()
     parafoil_sol = new Solenoid(9, A0, A2);
     cutdown_sol = new Solenoid(8, A1, A3);
 
-    startup_sequence();
-
     /* GPS */
     environment = new Environment();
     // environment->init(true); // for testing pcb
@@ -38,10 +33,10 @@ Raptor::Raptor()
     pinMode(SET_BTN, OUTPUT);
     if (digitalRead(SET_BTN))
     {
+        Serial << "Write EEPROM\n";
         eeprom->write_state(flight_state, environment->bmp->baseline);
     }
-
-    if (!digitalRead(SET_BTN))
+    else
     {
         Serial << "Read EEPROM\n";
         eeprom->read_state(&flight_state, &environment->bmp->baseline);
@@ -51,10 +46,21 @@ Raptor::Raptor()
         Serial << "\nSaved baseline: " << environment->bmp->baseline << "\n";
     }
 
+    /* Solenoids, Servos, BMP, BNO */
+    parafoil_sol = new Solenoid(9, A0, A2);
+    cutdown_sol = new Solenoid(8, A1, A3);
+
+    startup_sequence();
+
     pilot = new Pilot();
 
     delay(10);
-    Serial.print(F("TIME, TEMPERATURE, PRESSURE, ALTITUDE, LATITUDE, LONGITUDE, ANGLE, GPS_ALT, X, Y, Z, SWC, SWP, TURN, FLIGHT_STATE\n")); // data header
+    Serial.print(F("TIME,"
+                   "TEMPERATURE,PRESSURE,ALTITUDE,"
+                   "LATITUDE,LONGITUDE,ANGLE,GPS_ALT,"
+                   "X,Y,Z, "
+                   "SWC,SWP,"
+                   "TURN,FLIGHT_STATE\n")); // data header
 }
 
 void Raptor::launch()
@@ -129,7 +135,7 @@ void Raptor::descent()
         didwake = true;
     }
 
-    fly_time = time_elapsed;
+    fly_time = *environment->time_elapsed;
     if (fly_time > FLY_DELAY)
     {                                        // don't want to constantly call fly
         pilot->fly(environment->gps->angle); // the pilot just needs our current angle to do his calculations
@@ -163,6 +169,78 @@ void Raptor::landed()
 }
 
 /*
+ * Keeps Raptor in state to allow testing of parafoil control using RC receiver.
+ */
+void Raptor::rc_test()
+{
+    // Solenoid close() = can be engaged
+    // Solenoid open() = releases an engaged solenoid
+    static const uint8_t parafoil_pin = 7;
+    static const uint8_t cutdown_pin = 4;
+
+    pinMode(parafoil_pin, INPUT);
+    pinMode(cutdown_pin, INPUT);
+
+    delay(1000); // wait 5 seconds before starting
+
+    Serial << "Starting RC Test!\n";
+
+    pilot->servo_init();
+    while (true)
+    {
+        //int para_value = Read_RC_Digital(parafoil_pin);
+        //int cutdown_value = Read_RC_Digital(cutdown_pin);
+        //int test = analogRead(A0);
+        int para_value = Read_RC_Analog(A1);
+        int cutdown_value = Read_RC_Analog(A0);
+
+        Serial << "Parafoil: " << para_value << ", Cutdown: " << cutdown_value << "\n";
+        // Prevents random noise saying that both switches are triggered
+
+        //if(para_value == 1 && cutdown_value == 0)
+        //{
+        //    para_value = 1022;
+        //    cutdown_value = 1022;
+        //    Serial << "Both HIGH\n";
+        //}
+
+        // Outputs current value to serial
+        //Serial << "Digital read (parafoil): " << para_value << "\n";
+        //Serial << "Digital read (cutdown): " << cutdown_value << "\n\n";
+
+        // Balloon/Drone cutdown logic
+        if (cutdown_value > 1000)
+        {
+            // right analog stick all the way up
+            cutdown_sol->close();
+            Serial << "Cutdown Solenoid: Closed.\n";
+            analogWrite(A2, 255);
+        }
+        else
+        {
+            cutdown_sol->open();
+            Serial << "Cutdown Solenoid: Open.\n";
+            analogWrite(A2, 0);
+        }
+
+        // Parafoil cutdown logic
+        if (para_value > 1000)
+        {
+            // right analog stick all the way down
+            parafoil_sol->close();
+            Serial << "Parafoil Solenoid Closed. \n";
+            analogWrite(A3, 255);
+        }
+        else
+        {
+            parafoil_sol->open();
+            Serial << "Parafoil Solenoid Open. \n";
+            analogWrite(A3, 0);
+        }
+    }
+}
+
+/*
  * print_data updates sensor readings then prints all relevant data to the serial pins.
  */
 void Raptor::print_data()
@@ -171,18 +249,18 @@ void Raptor::print_data()
 
     /* Let's spray the serial port with a hose of data */
     // time, temperature, pressure, altitude,
-    Serial << time_elapsed << F(",") << environment->bmp->readTemperature() << F(",") << environment->bmp->readPressure()
+    Serial << *environment->time_elapsed << F(",") << environment->bmp->readTemperature() << F(",") << environment->bmp->readPressure()
            << F(",") << environment->bmp->getAltitude() << F(",");
 
-    // // latitude, longitude, angle, (gps) altitude,
+    // latitude, longitude, angle, (gps) altitude,
     Serial << _FLOAT(environment->gps->latitude, 7) << F(",") << _FLOAT(environment->gps->longitude, 7)
            << F(",") << _FLOAT(environment->gps->angle, 7) << F(",") << environment->gps->altitude << F(",");
 
-    // // x orientation, y orientation, z orientation,
+    // x orientation, y orientation, z orientation,
     Serial << _FLOAT(environment->bno->data.orientation.x, 4) << F(",") << _FLOAT(environment->bno->data.orientation.y, 4)
            << F(",") << _FLOAT(environment->bno->data.orientation.z, 4) << F(",");
 
-    // // cutdown switch, parafoil switch, turn status, flight state
+    // cutdown switch, parafoil switch, turn status, flight state
     Serial << this->cutdown_sol->read_switch() << F(",") << this->parafoil_sol->read_switch() << F(",")
            << pilot->get_turn() << F(",") << flight_state << "\n"; // write everything to SD card
 }

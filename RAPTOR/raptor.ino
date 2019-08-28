@@ -23,6 +23,8 @@ void loop()
     raptor->ascent();
     raptor->descent();
     raptor->landed();
+
+    raptor->rc_test();
 }
 
 // Interrupt is called once a millisecond, looks for any new GPS data, and stores it
