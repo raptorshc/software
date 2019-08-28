@@ -1,5 +1,5 @@
 /*
-  environment.cpp - 
+  environment.cpp -
 	DESCRIPTION NEEDED.
 	Part of the RAPTOR project, authors: Sean Widmier, Colin Oberthur
 */
@@ -8,7 +8,7 @@
 /* PUBLIC METHODS */
 
 /*
- *  Constructor for Environment 
+ *  Constructor for Environment
  */
 Environment::Environment()
 {
@@ -45,13 +45,12 @@ bool Environment::update()
         return false;
 }
 
-/* 
- * check our altitude measurements with the assumption we are ascending or descending based on flight state, 
+/*
+ * check our altitude measurements with the assumption we are ascending or descending based on flight state,
  *  grab the correct one or return the average if they're both correct.
  */
 float Environment::correct_alt(uint8_t flight_state)
 {
-    /*
     switch (flight_state)
     {
     case 0: // both flight state 0 and 1 are ascending
@@ -78,11 +77,10 @@ float Environment::correct_alt(uint8_t flight_state)
         else
             return (this->bmp->getAltitude() + this->gps->agl) / 2;
     }
-    */
 }
 
 /*
-* landing_check checks the altitude 4 times to see if we've actually landed 
+* landing_check checks the altitude 4 times to see if we've actually landed
 */
 bool Environment::landing_check(void)
 {
@@ -98,9 +96,9 @@ bool Environment::landing_check(void)
     return true;
 }
 
-/* 
- *  cutdown_check checks 10 consecutive alitude measurements over 2 seconds, 
- *    if all are decreasing return true, if not return false  
+/*
+ *  cutdown_check checks 10 consecutive alitude measurements over 2 seconds,
+ *    if all are decreasing return true, if not return false
  */
 bool Environment::cutdown_check(void)
 {

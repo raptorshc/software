@@ -1,6 +1,6 @@
 /*
- * gps.h - 
- * Library written for use with Adafruit Ultimate GPS.
+ * gps.h -
+ * Class written for use with Adafruit Ultimate GPS.
  * Utilizes Adafruit Ultimate GPS library.
  * Part of the RAPTOR project, authors: Sean Widmier, Colin Oberthur
 */

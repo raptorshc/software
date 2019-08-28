@@ -1,6 +1,6 @@
 /*
-  ContinuousServo.h - 
-  Library written for use with continuous rotation servos.
+  continuous_servo.h -
+  Class written for use with continuous rotation servos.
   Part of the RAPTOR project, authors: Sean Widmier, Colin Oberthur
 */
 #ifndef CONTINUOUSSERVO_H_

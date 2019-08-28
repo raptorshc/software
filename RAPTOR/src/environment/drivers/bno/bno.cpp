@@ -1,6 +1,6 @@
 /*
- * bno.cpp - 
- * Library written for use with Adafruit BNO055 sensor.
+ * bno.cpp -
+ * Class written for use with Adafruit BNO055 sensor.
  * Part of the RAPTOR project, authors: Sean Widmier, Colin Oberthur
 */
 #include "bno.h"

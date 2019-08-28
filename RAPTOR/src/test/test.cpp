@@ -1,5 +1,7 @@
 /*
-*
+  test.cpp -
+    DESCRIPTION NEEDED.
+    Part of the RAPTOR project, authors: Sean Widmier, Colin Oberthur
 */
 #include "test.h"
 #include <Adafruit_GPS.h>

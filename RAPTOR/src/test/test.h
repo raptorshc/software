@@ -1,5 +1,5 @@
 /*
-  test.h - 
+  test.h -
     Collection of various testing functions.
   Part of the RAPTOR project, authors: Sean Widmier, Colin Oberthur
 */

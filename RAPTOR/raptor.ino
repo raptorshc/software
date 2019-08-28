@@ -1,6 +1,11 @@
+/*
+  raptor.ino -
+    DESCRIPTION NEEDED.
+    Part of the RAPTOR project, authors: Sean Widmier, Colin Oberthur
+*/
 #include "src/raptor.h"
 #include <Streaming.h>
-// #include <avr/wdt.h>
+#include <avr/wdt.h>
 #include <Adafruit_GPS.h>
 #include <SoftwareSerial.h>
 
@@ -8,7 +13,7 @@ Raptor *raptor;
 
 void setup()
 {
-    // wdt_enable(WDTO_2S); // TODO: watchdog stuff
+    wdt_enable(WDTO_2S); // TODO: WATCHDOG STUFF
     raptor = new Raptor();
 }
 

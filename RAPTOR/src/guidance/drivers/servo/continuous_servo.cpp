@@ -1,5 +1,7 @@
 /*
-
+  continuous_servo.cpp -
+  Class written for use with continuous rotation servos.
+  Part of the RAPTOR project, authors: Sean Widmier, Colin Oberthur
 */
 #include <Arduino.h>
 #include "continuous_servo.h"

@@ -1,5 +1,5 @@
 /*
- * bmp.cpp - 
+ * bmp.cpp -
  * Contains implementation for functions in bmp.h
  * Utilizes the adafruit BMP180 external library, details here: https://learn.adafruit.com/bmp085
  * Part of the RAPTOR project, authors: Sean Widmier, Colin Oberthur
@@ -7,7 +7,7 @@
 #include "bmp.h"
 
 /*
- *	init begins the BMP measurements and 
+ *	init begins the BMP measurements and
  *   grabs a baseline pressure for alt calculations.
  */
 bool BMP::init(bool set_baseline)
@@ -35,5 +35,5 @@ bool BMP::init(bool set_baseline)
  */
 float BMP::getAltitude(void)
 {
-  return readAltitude(this->baseline/100);
+  return readAltitude(this->baseline / 100);
 }
