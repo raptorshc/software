@@ -23,6 +23,8 @@
 Environment environment; // contains all of our sensors in one nice class
 Pilot pilot;             // takes environmental input and makes all decisions regarding flight control
 
+elapsedMillis timeElapsed; // time elapsed in milliseconds
+
 uint8_t flight_state = 0; // current flight state
 long fly_time = 0;        // amount of time passed between flight controlling
 bool didwake = false;     // whether or not we have woken the pilot yet
@@ -32,7 +34,7 @@ bool didwake = false;     // whether or not we have woken the pilot yet
  */
 void setup()
 {
-  environment.time_elapsed = 0;
+  timeElapsed = 0;
 
   /* Buzzer and LEDs */
   pinMode(BZZ_DTA, OUTPUT);  // Set buzzer to output
@@ -188,6 +190,14 @@ void loop()
   }
 }
 
+/* 
+ *  interrupt each millisecond to read from the GPS.
+ */
+SIGNAL(TIMER0_COMPA_vect)
+{
+  environment.gps->read();
+}
+
 /*
  * print_data updates sensor readings then prints all relevant data to the serial pins.
  */
@@ -198,7 +208,7 @@ void print_data()
   /* Let's spray the serial port with a hose of data */
 
   // time, temperature, pressure, altitude,
-  Serial << time_elapsed << F(",") << environment.bmp->temperature << F(",") << environment.bmp->pressure
+  Serial << timeElapsed << F(",") << environment.bmp->temperature << F(",") << environment.bmp->pressure
          << F(",") << environment.bmp->altitude << F(",");
 
   // latitude, longitude, angle, (gps) altitude,

@@ -20,14 +20,15 @@ class GPS
     }
 
     void init(void);
+    void correct_coords(void);
 
-    void update(void);
+    void set_initalt(void);
+    void calc_agl(void);
+
+    void parse_NMEA(void);
 
     float init_alt, agl; // initial altitude and above ground level altitude
     bool first_gps;
-
-  private:
-    void dms_to_dec(void);
 };
 
 #endif
