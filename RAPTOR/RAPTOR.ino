@@ -76,9 +76,7 @@ void loop()
   {
   // FS0 [LAUNCH]
   case 0:
-    environment.bmp->update();
-
-    if (environment.bmp->altitude > GROUND_ALT)
+    if (environment.bmp->getAltitude() > GROUND_ALT)
     { // at 50ft (15.24 meters), transition to FS1 [ASCENT]
       flight_state = 1;
       write_EEPROM();
@@ -91,9 +89,7 @@ void loop()
 
   // FS1 [ASCENT]
   case 1:
-    environment.bmp->update();
-
-    if (environment.bmp->altitude > CUTDOWN_ALT)
+    if (environment.bmp->getAltitude() > CUTDOWN_ALT)
     { // at the cutdown altiude perform cutdown, deploy, and transition to FS2 [DESCENT]
       // CUTDOWN
       cutdown();
@@ -105,10 +101,9 @@ void loop()
       }
 
       // PARAFOIL DEPLOY
-      while (environment.bmp->altitude > CUTDOWN_ALT - 3.048)
+      while (environment.bmp->getAltitude() > CUTDOWN_ALT - 3.048)
       { // wait 3 meters to deploy the parafoil
         delay(1);
-        environment.bmp->update();
         print_data();
       }
 
@@ -152,8 +147,6 @@ void loop()
       didwake = true;
     }
 
-    environment.bmp->update();
-
     fly_time = timeElapsed;
     if (fly_time > FLY_DELAY)
     {                                    // don't want to constantly call fly
@@ -161,7 +154,7 @@ void loop()
       fly_time = 0;
     }
 
-    if (environment.bmp->altitude < GROUND_ALT)
+    if (environment.bmp->getAltitude() < GROUND_ALT)
     { // at 50ft (15.24 meters), transition to FS3 [LANDED]
       if (environment.landing_check())
       { // make sure that we have landed by checking the altitude constantly
@@ -205,11 +198,12 @@ void print_data()
 {
   environment.update();
 
+  delay(500);
   /* Let's spray the serial port with a hose of data */
 
   // time, temperature, pressure, altitude,
-  Serial << timeElapsed << F(",") << environment.bmp->temperature << F(",") << environment.bmp->pressure
-         << F(",") << environment.bmp->altitude << F(",");
+  Serial << timeElapsed << F(",") << _FLOAT(environment.bmp->readTemperature(), 2) << F(",") << _FLOAT(environment.bmp->getPressure(), 2)
+         << F(",") << _FLOAT(environment.bmp->getAltitude(), 2) << F(",");
 
   // latitude, longitude, angle, (gps) altitude,
   Serial << _FLOAT(environment.gps->latitude, 7) << F(",") << _FLOAT(environment.gps->longitude, 7)
@@ -253,7 +247,7 @@ void startup_sequence(void)
   }
 
   // initialize sensors, then indicate if we were successful or not
-  if (environment.init(flight_state))
+  if (environment.init(true))
   { // if the initialization was successful and we're in flight state 0 blink 5 times
     if (flight_state == 0)
     {
