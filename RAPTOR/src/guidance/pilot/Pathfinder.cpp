@@ -3,7 +3,7 @@
 	DESCRIPTION NEEDED.
 	Part of the RAPTOR project, authors: Sean Widmier, Colin Oberthur
 */
-#include "pathfinder.h"
+#include "Pathfinder.h"
 #include <stdlib.h>
 
 /* PUBLIC METHODS */

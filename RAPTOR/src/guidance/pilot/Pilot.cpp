@@ -3,7 +3,7 @@
 	DESCRIPTION NEEDED.
 	Part of the RAPTOR project, authors: Sean Widmier, Colin Oberthur
 */
-#include "pilot.h"
+#include "Pilot.h"
 #include <stdio.h>
 
 #define SRVOR_DTA 6 // Right servo

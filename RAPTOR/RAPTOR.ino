@@ -2,7 +2,7 @@
 #include <EEPROM.h>
 #include <Streaming.h> // http://arduiniana.org/libraries/streaming/
 
-#include "src/guidance/pilot/pilot.h"
+#include "src/guidance/pilot/Pilot.h"
 #include "src/environment/environment.h"
 #include "src/guidance/drivers/solenoid/solenoid.h"
 
@@ -43,17 +43,17 @@ void setup()
   Serial.begin(9600);
 
   pinMode(SET_BTN, OUTPUT);
-  if (!digitalRead(SET_BTN))
-  {
-    read_EEPROM();
-  }
+  // if (!digitalRead(SET_BTN))
+  // {
+  // read_EEPROM();
+  // }
   /* Solenoids, Servos, BMP, BNO */
   startup_sequence();
 
-  if (digitalRead(SET_BTN))
-  {
-    write_EEPROM();
-  }
+  // if (digitalRead(SET_BTN))
+  // {
+  write_EEPROM();
+  // }
 
   /* GPS */
   environment.gps->init();

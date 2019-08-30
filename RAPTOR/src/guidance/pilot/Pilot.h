@@ -8,7 +8,7 @@
 
 #define TESTPILOT
 
-#include "pathfinder.h"
+#include "Pathfinder.h"
 #include "../drivers/servo/continuous_servo.h"
 #include "Arduino.h"
 
