@@ -7,6 +7,19 @@
 #include <Adafruit_BNO055.h>
 
 /*
+ *
+ */
+BNO *BNO::getInst()
+{
+    static BNO *inst = NULL;
+    if (!inst)
+    {
+        inst = new BNO;
+    }
+    return inst;
+}
+
+/*
  *	init begins the BNO measurements
  */
 bool BNO::init(void)

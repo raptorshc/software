@@ -8,18 +8,16 @@
 /* PUBLIC METHODS */
 
 /*
- *  Constructor for Environment
+ *
  */
-Environment::Environment()
+Environment *Environment::getInst()
 {
-    /* BMP */
-    this->bno = new BNO();
-    /* BNO */
-    this->bmp = new BMP();
-
-    /* GPS */
-    SoftwareSerial *gps_serial = new SoftwareSerial(3, 2); // GPS serial comm pins
-    this->gps = new GPS(*gps_serial);
+    static Environment *inst = NULL;
+    if (!inst)
+    {
+        inst = new Environment;
+    }
+    return inst;
 }
 
 /*
@@ -113,4 +111,20 @@ bool Environment::cutdown_check(void)
         }
     }
     return true; //Falling
+}
+
+/*
+ *  Constructor for Environment
+ */
+Environment::Environment()
+{
+    /* BMP */
+    this->bno = BNO::getInst();
+    /* BNO */
+    this->bmp = BMP::getInst();
+
+    /* GPS */
+    SoftwareSerial *gps_serial = new SoftwareSerial(3, 2); // GPS serial comm pins
+    //this->gps = new GPS(*gps_serial);
+    this->gps = &GPS::getInst(*gps_serial);
 }

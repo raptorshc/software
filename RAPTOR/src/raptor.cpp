@@ -19,7 +19,7 @@ Raptor::Raptor()
     this->parafoil_sol = new Solenoid(9, A0, A2);
     this->cutdown_sol = new Solenoid(8, A1, A3);
 
-    this->environment = new Environment();
+    this->environment = Environment::getInst();
     this->eeprom = new Prom();
     pilot = new Pilot();
 }

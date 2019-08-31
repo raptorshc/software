@@ -8,6 +8,19 @@
 #include <Streaming.h>
 
 /*
+ *
+ */
+BMP *BMP::getInst()
+{
+  static BMP *inst = NULL;
+  if (!inst)
+  {
+    inst = new BMP;
+  }
+  return inst;
+}
+
+/*
  *	init begins the BMP measurements and
  *   grabs a baseline pressure for alt calculations.
  */

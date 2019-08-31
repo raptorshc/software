@@ -13,11 +13,14 @@
 class BNO : public Adafruit_BNO055
 {
 public:
-  BNO() : Adafruit_BNO055(55) {}
+  static BNO *getInst();
   bool init(void);
   bool update(void);
 
   sensors_event_t data;
+
+private:
+  BNO() : Adafruit_BNO055(55) {}
 };
 
 #endif

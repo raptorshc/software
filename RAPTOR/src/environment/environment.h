@@ -14,7 +14,7 @@
 class Environment
 {
 public:
-  Environment(); // constructor
+  static Environment *getInst();
 
   bool init(bool set_baseline);
   bool update();
@@ -27,6 +27,9 @@ public:
   BMP *bmp;
   BNO *bno;
   GPS *gps;
+
+private:
+  Environment(); // constructor
 };
 
 #endif

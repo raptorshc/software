@@ -13,11 +13,7 @@ class GPS
     : public Adafruit_GPS
 {
 public:
-  GPS(SoftwareSerial &mySerial) : Adafruit_GPS(&mySerial)
-  {
-    first_gps = true;
-  }
-
+  static GPS &getInst(SoftwareSerial &s);
   void init(void);
 
   void update(void);
@@ -26,6 +22,10 @@ public:
   bool first_gps;
 
 private:
+  GPS(SoftwareSerial &s) : Adafruit_GPS(&s)
+  {
+    this->first_gps = true;
+  }
   void dms_to_dec(void);
 };
 

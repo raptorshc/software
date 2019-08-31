@@ -14,13 +14,16 @@ class BMP
     : public Adafruit_BMP280
 {
 public:
-  BMP() : Adafruit_BMP280() {}
+  static BMP *getInst();
   bool init(bool set_baseline);
 
   float getPressure(void);
   float getAltitude(void);
 
   float baseline;
+
+private:
+  BMP() : Adafruit_BMP280() {}
 };
 
 #endif /* BMP_H_ */

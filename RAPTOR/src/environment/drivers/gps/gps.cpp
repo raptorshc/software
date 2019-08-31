@@ -8,6 +8,15 @@
 #include "math.h"
 
 /*
+ *
+ */
+GPS &GPS::getInst(SoftwareSerial &s)
+{
+  static GPS inst(s);
+  return inst;
+}
+
+/*
  * init begins the GPS readings, sets up the timer counter used for the
  *  millisecond interrupt, which will query and parse the GPS data
  */
