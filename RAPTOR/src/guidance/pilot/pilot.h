@@ -1,16 +1,13 @@
 /*
-  pilot.h - 
+  pilot.h -
 		DESCRIPTION NEEDED.
 		Part of the RAPTOR project, authors: Sean Widmier, Colin Oberthur
 */
 #ifndef PILOT_h
 #define PILOT_h
 
-#define TESTPILOT
-
 #include "pathfinder.h"
 #include "../drivers/servo/continuous_servo.h"
-#include "Arduino.h"
 
 class Pilot
 {
@@ -30,6 +27,11 @@ public:
 	int servoL_status(void);
 	int get_turn(void);
 
+	/* Turning Methods */
+	void turn_right();
+	void turn_left();
+	void straight();
+
 private:
 	float desired_heading;
 
@@ -39,11 +41,6 @@ private:
 	Pathfinder *p;
 
 	int find_turn(float curr_angle);
-
-	/* Turning Methods */
-	void turn_right();
-	void turn_left();
-	void straight();
 };
 
 #endif

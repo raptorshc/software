@@ -1,49 +1,59 @@
-// // This came from https://github.com/sparkfun/OpenLog/blob/master/firmware/Arduino_Examples/Example3_ReadFile/Example3_ReadFile.ino
-// #include <SoftwareSerial.h> // This allows it to communicate with the Arduino's Serial Ports
+// /*
+//   environment.cpp -
+// 	DESCRIPTION NEEDED.
+// 	Part of the RAPTOR project, authors: Sean Widmier, Colin Oberthur
+// */
+// #include "openlog.h"
+// // use read() , serial.read()
+
+// Openlog::Openlog(int rx, int tx) : SoftwareSerial(rx, tx)
+// {
+//     //int resetOpenLog = 4; //This pin resets OpenLog. Connect pin 4 to pin GRN on OpenLog.
+
+//     pinMode(resetOpenLog, OUTPUT);
+//     OpenLog.begin(9600);
+
+//     //Reset OpenLog
+//     digitalWrite(resetOpenLog, LOW);
+//     delay(100);
+//     digitalWrite(resetOpenLog, HIGH);
+
+//     uint8_t count = 0;
+
+//     //Wait for OpenLog to respond with '<' to indicate it is alive and recording to a file
+//     while (count++ < 5 || !(OpenLog.available() && OpenLog.read() == '<'))
+//         ;
+// }
+
 // //This function pushes OpenLog into command mode
-// void gotoCommandMode(void) {
-//   //Send three control z to enter OpenLog command mode
-//   //Works with Arduino v1.0
-//   OpenLog.write(26);
-//   OpenLog.write(26);
-//   OpenLog.write(26);
+// void Openlog::command(void)
+// {
+//     // Send three control z to enter OpenLog command mode
+//     // Works with Arduino v1.0
+//     OpenLog.write(26);
+//     OpenLog.write(26);
+//     OpenLog.write(26);
 
-//   //Wait for OpenLog to respond with '>' to indicate we are in command mode
-//   while(1) {
-//     if(OpenLog.available())
-//       if(OpenLog.read() == '>') break;
-//   }
+//     //Wait for OpenLog to respond with '>' to indicate we are in command mode
+//     while (count++ < 5 || !(OpenLog.available() && OpenLog.read() == '<'))
+//         ;
 // }
 
-// void setupOpenLog(void) {
-//   pinMode(resetOpenLog, OUTPUT);
-//   OpenLog.begin(9600);
+// char *Openlog::read(char *request)
+// {
 
-//   //Reset OpenLog
-//   digitalWrite(resetOpenLog, LOW);
-//   delay(100);
-//   digitalWrite(resetOpenLog, HIGH);
+//     OpenLog.write(13); //This is \r
+//     if (Serial.available() > 0)
+//     {
+//         serial.read()
+//     }
 
-//   //Wait for OpenLog to respond with '<' to indicate it is alive and recording to a file
-//   while(1) {
-//     if(OpenLog.available())
-//       if(OpenLog.read() == '<') break;
-//   }
+//     //New way
+//     //OpenLog.print("read ");
+//     //OpenLog.println(filename); //regular println works with OpenLog v2.51 and above
+
+//     //The OpenLog echos the commands we send it by default so we have 'disk\r' sitting
+//     //in the RX buffer. Let's try to not print this.
+//     while (count++ < 5 || !(OpenLog.available() && OpenLog.read() == '<'))
+//         ;
 // }
-// void readDisk() {
-
-//   //Old way
-//   OpenLog.print("disk");
-//   OpenLog.write(13); //This is \r
-
-//   //New way
-//   //OpenLog.print("read ");
-//   //OpenLog.println(filename); //regular println works with OpenLog v2.51 and above
-
-//   //The OpenLog echos the commands we send it by default so we have 'disk\r' sitting 
-//   //in the RX buffer. Let's try to not print this.
-//   while(1) {
-//     if(OpenLog.available())
-//       if(OpenLog.read() == '\r') break;
-//   }  
-

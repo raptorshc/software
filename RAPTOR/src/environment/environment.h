@@ -1,5 +1,5 @@
 /*
-  environment.h - 
+  environment.h -
 	DESCRIPTION NEEDED.
 	Part of the RAPTOR project, authors: Sean Widmier, Colin Oberthur
 */
@@ -23,11 +23,10 @@ public:
 
   bool landing_check(void);
   bool cutdown_check(void);
-  
+
   BMP *bmp;
   BNO *bno;
   GPS *gps;
-  elapsedMillis *time_elapsed;
 };
 
 #endif

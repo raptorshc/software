@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.ino": "arduino-output",
+        "*.tcc": "cpp",
+        "fstream": "cpp"
+    }
+}

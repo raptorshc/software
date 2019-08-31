@@ -1,5 +1,5 @@
 /*
- * gps.cpp - 
+ * gps.cpp -
  * Contains implementation for functions in gps.h.
  * Utilizes Adafruit Ultimate GPS library, details: https://learn.adafruit.com/adafruit-ultimate-gps
  * Part of the RAPTOR project, authors: Sean Widmier, Colin Oberthur
@@ -9,7 +9,7 @@
 
 /*
  * init begins the GPS readings, sets up the timer counter used for the
- *  millisecond interrupt, which will query and parse the GPS data 
+ *  millisecond interrupt, which will query and parse the GPS data
  */
 void GPS::init(void)
 {
@@ -25,7 +25,7 @@ void GPS::init(void)
 }
 
 /*
- * update performs all needed actions for parsing 
+ * update performs all needed actions for parsing
  *  a new set of data collected by the GPS
  */
 void GPS::update(void)
@@ -48,7 +48,7 @@ void GPS::update(void)
 }
 
 /*
- * converts lat/long from Adafruit degree-minute format to decimal-degrees 
+ * converts lat/long from Adafruit degree-minute format to decimal-degrees
  */
 void GPS::dms_to_dec(void)
 // from http://arduinodev.woofex.net/2013/02/06/adafruit_gps_forma/
@@ -68,12 +68,4 @@ void GPS::dms_to_dec(void)
 
   min_lat = (int)(min_lat / 100);
   this->latitude = min_lat + (minla / 60);
-}
-
-/* 
- *  interrupt each millisecond to read from the GPS.
- */
-SIGNAL(TIMER0_COMPA_vect)
-{
-  environment.gps->read();
 }

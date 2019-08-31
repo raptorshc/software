@@ -1,17 +1,27 @@
 /*
-  solenoid.h - 
-  Library written for use with solenoids, as well as switches and LED indicators for the solenoid.
+  solenoid.h -
+  Class written for use with solenoids, as well as switches and LED indicators for the solenoid.
   Part of the RAPTOR project, authors: Sean Widmier, Colin Oberthur
 */
 #ifndef SOLENOID_H_
 #define SOLENOID_H_
 
-#include "Arduino.h"
+#include <Arduino.h>
 
-void sol_init(void);
-void cutdown(void);
-void parafoil_deploy(void);
-bool cutdown_switch(void);
-bool parafoil_switch(void);
+class Solenoid
+{
+public:
+  Solenoid(uint8_t data, uint8_t sw, uint8_t led);
+
+  void secure(void);
+  void release(void);
+
+  bool read_switch(void);
+
+private:
+  uint8_t dta_pin;
+  uint8_t sw_pin;
+  uint8_t led_pin;
+};
 
 #endif

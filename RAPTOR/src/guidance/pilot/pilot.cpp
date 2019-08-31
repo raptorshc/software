@@ -1,10 +1,11 @@
 /*
-  pilot.cpp - 
+  pilot.cpp -
 	DESCRIPTION NEEDED.
 	Part of the RAPTOR project, authors: Sean Widmier, Colin Oberthur
 */
 #include "pilot.h"
 #include <stdio.h>
+#include <Arduino.h>
 
 #define SRVOR_DTA 6 // Right servo
 #define SRVOL_DTA 5 // Left servo
@@ -14,7 +15,7 @@
 /* PUBLIC METHODS */
 
 /*
- *  Constructor for Pilot 
+ *  Constructor for Pilot
  */
 Pilot::Pilot()
 {
@@ -37,7 +38,7 @@ void Pilot::wake(Coordinate current, Coordinate target)
 }
 
 /*
- *  fly will .. 
+ *  fly will ..
  */
 void Pilot::fly(float curr_angle)
 {
@@ -59,7 +60,7 @@ void Pilot::fly(float curr_angle)
     }
 }
 
-/* 
+/*
  * servoR_status acts as a public accessor for the read method of servoR
  */
 int Pilot::servoR_status(void)
@@ -67,7 +68,7 @@ int Pilot::servoR_status(void)
     return servoR->readMicroseconds();
 }
 
-/* 
+/*
  * servoR_status acts as a public accessor for the read method of servoL
  */
 int Pilot::servoL_status(void)
@@ -75,7 +76,7 @@ int Pilot::servoL_status(void)
     return servoL->readMicroseconds();
 }
 
-/* 
+/*
  * get_turn returns the current turn of the pilot
  */
 int Pilot::get_turn(void)
@@ -83,7 +84,7 @@ int Pilot::get_turn(void)
     return current_turn;
 }
 
-/* 
+/*
  * servo_test turns and resets both servos to indicate servo power and attachment
  */
 void Pilot::servo_test(void)
@@ -99,7 +100,7 @@ void Pilot::servo_test(void)
     servoR->reset();
 }
 
-/* 
+/*
  * servo_init initializes both the left and right servos
  */
 void Pilot::servo_init(void)
@@ -108,7 +109,7 @@ void Pilot::servo_init(void)
     this->servoL = new ContinuousServo(ContinuousServo::LEFT, SRVOL_DTA);
 }
 
-/* 
+/*
  * sleep shuts down the pilot and sets the payload straight
  */
 void Pilot::sleep(void)
@@ -117,8 +118,8 @@ void Pilot::sleep(void)
 }
 /* PRIVATE METHODS */
 
-/* 
- * find_turn takes the current angle and finds the correct 
+/*
+ * find_turn takes the current angle and finds the correct
  * turn based on basic heading math
  */
 int Pilot::find_turn(float curr_angle)
@@ -160,8 +161,12 @@ void Pilot::turn_right()
 {
     if (current_turn == ContinuousServo::LEFT)
         straight();
-    servoR->turn();
-    current_turn = ContinuousServo::RIGHT;
+    if (current_turn != ContinuousServo::RIGHT)
+    {
+        servoR->turn();
+        current_turn = ContinuousServo::RIGHT;
+        Serial.print("Turn: right.\n");
+    }
 }
 
 /*
@@ -171,8 +176,12 @@ void Pilot::turn_left()
 {
     if (current_turn == ContinuousServo::RIGHT)
         straight();
-    servoL->turn();
-    current_turn = ContinuousServo::LEFT;
+    if (current_turn != ContinuousServo::LEFT)
+    {
+        servoL->turn();
+        current_turn = ContinuousServo::LEFT;
+        Serial.print("Turn: left.\n");
+    }
 }
 
 /*
@@ -183,10 +192,12 @@ void Pilot::straight()
     if (current_turn == ContinuousServo::RIGHT)
     {
         servoR->reset();
+        Serial.print("Turn: straight from right.\n");
     }
-    else
+    else if (current_turn == ContinuousServo::LEFT)
     {
         servoL->reset();
+        Serial.print("Turn: straight from left.\n");
     }
     current_turn = STRAIGHT;
 }
