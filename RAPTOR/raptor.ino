@@ -13,18 +13,30 @@ Raptor *raptor;
 
 void setup()
 {
-    wdt_enable(WDTO_2S); // TODO: WATCHDOG STUFF
+    // wdt_enable(WDTO_2S); // TODO: WATCHDOG STUFF
     raptor = new Raptor();
+    raptor->init();
 }
 
 void loop()
 {
-    raptor->launch();
-    raptor->ascent();
-    raptor->descent();
-    raptor->landed();
-
-    raptor->rc_test();
+    switch (raptor->flight_state)
+    {
+    case 0:
+        raptor->launch();
+        break;
+    case 1:
+        raptor->ascent();
+        break;
+    case 2:
+        raptor->descent();
+        break;
+    case 3:
+        raptor->landed();
+        break;
+    default:
+        raptor->flight_state = 2;
+    }
 }
 
 // Interrupt is called once a millisecond, looks for any new GPS data, and stores it

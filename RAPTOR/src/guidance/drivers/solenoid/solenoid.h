@@ -13,8 +13,8 @@ class Solenoid
 public:
   Solenoid(uint8_t data, uint8_t sw, uint8_t led);
 
-  void open(void);
-  void close(void);
+  void secure(void);
+  void release(void);
 
   bool read_switch(void);
 

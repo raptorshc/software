@@ -16,6 +16,7 @@ class Raptor
 public:
   Raptor();
 
+  void init();
   void launch();
   void ascent();
   void descent();
@@ -24,6 +25,7 @@ public:
   void rc_test();
 
   Environment *environment;
+  uint8_t flight_state = 0; // current flight state
 
 private:
   void startup_sequence();
@@ -37,9 +39,8 @@ private:
   Solenoid *parafoil_sol;
   Solenoid *cutdown_sol;
 
-  uint8_t flight_state = 0; // current flight state
-  long fly_time = 0;        // amount of time passed between flight controlling
-  bool didwake = false;     // whether or not we have woken the pilot yet
+  long fly_time = 0;    // amount of time passed between flight controlling
+  bool didwake = false; // whether or not we have woken the pilot yet
 
   const float GROUND_ALT = 15.24;  // altitude to transition to FS1 [ASCENT] or FS3 [LANDED], =50ft
   const float CUTDOWN_ALT = 609.6; // altitude to transition to FS2 [DESCENT], =1000ft

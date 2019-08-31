@@ -16,46 +16,45 @@ static elapsedMillis time_elapsed;
 
 Raptor::Raptor()
 {
+    this->parafoil_sol = new Solenoid(9, A0, A2);
+    this->cutdown_sol = new Solenoid(8, A1, A3);
+
+    this->environment = new Environment();
+    this->eeprom = new Prom();
+    pilot = new Pilot();
+}
+
+void Raptor::init(void)
+{
+    Serial.begin(115200);
     time_elapsed = 0;
+
+    Serial << "begin init\n";
 
     /* Buzzer and LEDs */
     pinMode(BZZ_DTA, OUTPUT);  // Set buzzer to output
     pinMode(LEDS_DTA, OUTPUT); // Set LEDs to output
 
-    Serial.begin(115200);
-
-    /* Solenoids, Servos, BMP, BNO */
-    parafoil_sol = new Solenoid(9, A0, A2);
-    cutdown_sol = new Solenoid(8, A1, A3);
-
     /* GPS */
-    environment = new Environment();
-    // environment->init(true); // for testing pcb
+    environment->init(true); // for testing pcb
 
-    eeprom = new Prom();
     pinMode(SET_BTN, OUTPUT);
-    if (digitalRead(SET_BTN))
-    {
-        Serial << "Write EEPROM\n";
-        eeprom->write_state(flight_state, environment->bmp->baseline);
-    }
-    else
-    {
-        Serial << "Read EEPROM\n";
-        eeprom->read_state(&flight_state, &environment->bmp->baseline);
+    // if (digitalRead(SET_BTN))
+    // {
+    //     Serial << "Write EEPROM\n";
+    //     eeprom->write_state(this->flight_state, environment->bmp->baseline);
+    // }
+    // else
+    // {
+    //     Serial << "Read EEPROM\n";
+    //     eeprom->read_state(&this->flight_state, &environment->bmp->baseline);
 
-        // print retrieved data
-        Serial << "Saved flight state: " << flight_state;
-        Serial << "\nSaved baseline: " << environment->bmp->baseline << "\n";
-    }
-
-    /* Solenoids, Servos, BMP, BNO */
-    parafoil_sol = new Solenoid(9, A0, A2);
-    cutdown_sol = new Solenoid(8, A1, A3);
+    //     // print retrieved data
+    //     Serial << "Saved flight state: " << this->flight_state;
+    //     Serial << "\nSaved baseline: " << environment->bmp->baseline << "\n";
+    // }
 
     startup_sequence();
-
-    pilot = new Pilot();
 
     delay(10);
     Serial.print(F("TIME,"
@@ -70,8 +69,8 @@ void Raptor::launch()
 {
     if (environment->bmp->getAltitude() > GROUND_ALT)
     { // at 50ft (15.24 meters), transition to FS1 [ASCENT]
-        flight_state = 1;
-        eeprom->write_state(flight_state, environment->bmp->baseline);
+        this->flight_state = 1;
+        eeprom->write_state(this->flight_state, environment->bmp->baseline);
     }
 
     // blink the LEDs and print data at a rate of 1Hz
@@ -84,12 +83,12 @@ void Raptor::ascent()
     if (environment->bmp->getAltitude() > CUTDOWN_ALT)
     { // at the cutdown altitude perform cutdown, deploy, and transition to FS2 [DESCENT]
         // CUTDOWN
-        this->cutdown_sol->open();
+        this->cutdown_sol->release();
 
         if (!this->cutdown_sol->read_switch())
         { // we want to make sure that we have cut down
             Serial << F("\n!!!! CUTDOWN ERROR DETECTED !!!!\n");
-            this->cutdown_sol->open(); // try cutdown again, probably won't do much
+            this->cutdown_sol->release(); // try cutdown again, probably won't do much
         }
 
         // PARAFOIL DEPLOY
@@ -99,18 +98,18 @@ void Raptor::ascent()
             print_data();
         }
 
-        this->parafoil_sol->open();
+        this->parafoil_sol->release();
 
         if (!this->parafoil_sol->read_switch())
         { // make sure the parafoil has deployed
             Serial << F("\n!!!! PARAFOIL DEPLOYMENT ERROR DETECTED !!!!\n");
-            this->parafoil_sol->open(); // try deploying parafoil again, probably won't do much
+            this->parafoil_sol->release(); // try deploying parafoil again, probably won't do much
         }
 
         delay(DEPLOY_DELAY); // wait for the parafoil to deploy/inflate before we begin guidance
 
-        flight_state = 2;
-        eeprom->write_state(flight_state, environment->bmp->baseline);
+        this->flight_state = 2;
+        eeprom->write_state(this->flight_state, environment->bmp->baseline);
     }
 
     // blink the LEDs and print data at a rate of 5Hz
@@ -150,7 +149,7 @@ void Raptor::descent()
         if (environment->landing_check())
         { // make sure that we have landed by checking the altitude constantly
             pilot->sleep();
-            flight_state = 3;
+            this->flight_state = 3;
             Serial << "\n!!!! LANDED !!!!\n";
         }
     }
@@ -176,8 +175,8 @@ void Raptor::landed()
  */
 void Raptor::rc_test()
 {
-    // Solenoid close() = can be engaged
-    // Solenoid open() = releases an engaged solenoid
+    // Solenoid secure() = can be engaged
+    // Solenoid release() = releases an engaged solenoid
     static const uint8_t parafoil_pin = 7;
     static const uint8_t cutdown_pin = 4;
 
@@ -215,13 +214,13 @@ void Raptor::rc_test()
         if (cutdown_value > 1000)
         {
             // right analog stick all the way up
-            cutdown_sol->close();
+            cutdown_sol->secure();
             Serial << "Cutdown Solenoid: Closed.\n";
             analogWrite(A2, 255);
         }
         else
         {
-            cutdown_sol->open();
+            cutdown_sol->release();
             Serial << "Cutdown Solenoid: Open.\n";
             analogWrite(A2, 0);
         }
@@ -230,13 +229,13 @@ void Raptor::rc_test()
         if (para_value > 1000)
         {
             // right analog stick all the way down
-            parafoil_sol->close();
+            parafoil_sol->secure();
             Serial << "Parafoil Solenoid Closed. \n";
             analogWrite(A3, 255);
         }
         else
         {
-            parafoil_sol->open();
+            parafoil_sol->release();
             Serial << "Parafoil Solenoid Open. \n";
             analogWrite(A3, 0);
         }
@@ -252,7 +251,7 @@ void Raptor::print_data()
 
     /* Let's spray the serial port with a hose of data */
     // time, temperature, pressure, altitude,
-    Serial << time_elapsed << F(",") << environment->bmp->readTemperature() << F(",") << environment->bmp->readPressure()
+    Serial << time_elapsed << F(",") << environment->bmp->readTemperature() << F(",") << environment->bmp->getPressure()
            << F(",") << environment->bmp->getAltitude() << F(",");
 
     // latitude, longitude, angle, (gps) altitude,
@@ -265,7 +264,7 @@ void Raptor::print_data()
 
     // cutdown switch, parafoil switch, turn status, flight state
     Serial << this->cutdown_sol->read_switch() << F(",") << this->parafoil_sol->read_switch() << F(",")
-           << pilot->get_turn() << F(",") << flight_state << "\n"; // write everything to SD card
+           << pilot->get_turn() << F(",") << this->flight_state << "\n"; // write everything to SD card
 }
 
 /*
@@ -276,30 +275,30 @@ void Raptor::print_data()
 void Raptor::startup_sequence(void)
 {
     // indicate board power with a buzzer beep if in flight state 0
-    if (flight_state == 0)
+    if (this->flight_state == 0)
     {
         beep(500);
     }
 
     // initialize solenoids, should hear them click and see the indicator LEDs turn on
-    parafoil_sol->close();
+    parafoil_sol->secure();
     parafoil_sol->read_switch();
 
-    cutdown_sol->close();
+    cutdown_sol->secure();
     parafoil_sol->read_switch();
 
     // initialize servos, if we're in flight state 0 we'll test them as well
     pilot->servo_init();
-    if (flight_state == 0)
+    if (this->flight_state == 0)
     {
         pilot->servo_test(); // rotates and resets each servo
         delay(200);
     }
 
     // initialize sensors, then indicate if we were successful or not
-    if (environment->init(flight_state))
+    if (environment->init(this->flight_state))
     { // if the initialization was successful and we're in flight state 0 blink 5 times
-        if (flight_state == 0)
+        if (this->flight_state == 0)
         {
             for (int i = 0; i < 5; i++)
                 blink_led(500);
@@ -307,7 +306,7 @@ void Raptor::startup_sequence(void)
     }
     else
     { // if the initialization was unsuccessful and we're in flight state 1 beep & blink 15 times
-        if (flight_state == 0)
+        if (this->flight_state == 0)
         {
             for (int i = 0; i < 15; i++)
             {
