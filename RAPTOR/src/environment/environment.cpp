@@ -1,15 +1,14 @@
 /*
-  this->cpp - 
+  environment.cpp -
 	DESCRIPTION NEEDED.
 	Part of the RAPTOR project, authors: Sean Widmier, Colin Oberthur
 */
 #include "environment.h"
-#include <Streaming.h>
 
 /* PUBLIC METHODS */
 
 /*
- *  Constructor for Environment 
+ *  Constructor for Environment
  */
 Environment::Environment()
 {
@@ -26,7 +25,7 @@ Environment::Environment()
 /*
  * initializes all sensors, returns false if any initializations fail return false
  */
-bool Environment::init(bool set_baseline = true)
+bool Environment::init(bool set_baseline)
 {
     this->gps->init();
     if (this->bmp->init(set_baseline) && this->bno->init())
@@ -38,18 +37,17 @@ bool Environment::init(bool set_baseline = true)
 /*
  *  updates/queries all sensors, returns false if any fail
  */
-//Wener
 bool Environment::update()
 {
-    this->gps->parse_NMEA();
+    this->gps->update();
     if (this->bno->update())
         return true;
     else
         return false;
 }
 
-/* 
- * check our altitude measurements with the assumption we are ascending or descending based on flight state, 
+/*
+ * check our altitude measurements with the assumption we are ascending or descending based on flight state,
  *  grab the correct one or return the average if they're both correct.
  */
 float Environment::correct_alt(uint8_t flight_state)
@@ -83,7 +81,7 @@ float Environment::correct_alt(uint8_t flight_state)
 }
 
 /*
-* landing_check checks the altitude 4 times to see if we've actually landed 
+* landing_check checks the altitude 4 times to see if we've actually landed
 */
 bool Environment::landing_check(void)
 {
@@ -99,9 +97,9 @@ bool Environment::landing_check(void)
     return true;
 }
 
-/* 
- *  cutdown_check checks 10 consecutive alitude measurements over 2 seconds, 
- *    if all are decreasing return true, if not return false  
+/*
+ *  cutdown_check checks 10 consecutive alitude measurements over 2 seconds,
+ *    if all are decreasing return true, if not return false
  */
 bool Environment::cutdown_check(void)
 {

@@ -1,8 +1,11 @@
 /*
-
+  continuous_servo.cpp -
+  Class written for use with continuous rotation servos.
+  Part of the RAPTOR project, authors: Sean Widmier, Colin Oberthur
 */
-#include "continuous_servo.h"
 #include <Arduino.h>
+#include "continuous_servo.h"
+#include <math.h>
 
 /* Public Methods */
 /*
@@ -17,16 +20,18 @@ void ContinuousServo::turn(bool reset /*= false*/)
 	if (servo == RIGHT)
 	{
 		if (reset)
-			this->writeMicroseconds(CCW);
+			this->writeMicroseconds(CW);
 		else
-			this->writeMicroseconds(CW); // based on the turn, we will rotate CW or CCW
+			this->writeMicroseconds(CCW); // based on the turn, we will rotate CW or CCW
 	}
 	else
 	{ // left servo
-		if (reset)
-			this->writeMicroseconds(CW); // reset will turn the servo the other way for the same amount of time
-		else
-			this->writeMicroseconds(CCW);
+		if (reset){
+			this->writeMicroseconds(CCW); // reset will turn the servo the other way for the same amount of time
+		}
+		else{
+			this->writeMicroseconds(CW);
+		}
 	}
 	delay(TTR);
 

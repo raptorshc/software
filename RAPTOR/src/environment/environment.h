@@ -1,5 +1,5 @@
 /*
-  environment.h - 
+  environment.h -
 	DESCRIPTION NEEDED.
 	Part of the RAPTOR project, authors: Sean Widmier, Colin Oberthur
 */
@@ -27,7 +27,6 @@ public:
   BMP *bmp;
   BNO *bno;
   GPS *gps;
-  elapsedMillis *timeElapsed;
 };
 
 #endif
