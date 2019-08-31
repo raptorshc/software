@@ -15,12 +15,16 @@
 /* PUBLIC METHODS */
 
 /*
- *  Constructor for Pilot
+ *
  */
-Pilot::Pilot()
+Pilot *Pilot::getInst()
 {
-    this->current_turn = STRAIGHT;
-    this->target_turn = STRAIGHT;
+    static Pilot *inst = NULL;
+    if (!inst)
+    {
+        inst = new Pilot;
+    }
+    return inst;
 }
 
 /*
@@ -117,6 +121,15 @@ void Pilot::sleep(void)
     straight();
 }
 /* PRIVATE METHODS */
+
+/*
+ *  Constructor for Pilot
+ */
+Pilot::Pilot()
+{
+    this->current_turn = STRAIGHT;
+    this->target_turn = STRAIGHT;
+}
 
 /*
  * find_turn takes the current angle and finds the correct

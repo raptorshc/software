@@ -21,7 +21,7 @@ Raptor::Raptor()
 
     this->environment = Environment::getInst();
     this->eeprom = new Prom();
-    pilot = new Pilot();
+    pilot = Pilot::getInst();
 }
 
 void Raptor::init(void)

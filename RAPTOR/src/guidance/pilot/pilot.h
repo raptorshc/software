@@ -12,7 +12,7 @@
 class Pilot
 {
 public:
-	Pilot();
+	static Pilot *getInst();
 
 	void wake(Coordinate current, Coordinate target);
 	void fly(float curr_angle);
@@ -33,6 +33,7 @@ public:
 	void straight();
 
 private:
+	Pilot();
 	float desired_heading;
 
 	int current_turn, target_turn; // uses ContinuousServo settings for 0 (left) and 1 (right), 2 is straight
