@@ -2,7 +2,7 @@
 #include <EEPROM.h>
 #include <Streaming.h> // http://arduiniana.org/libraries/streaming/
 
-#include "src/guidance/pilot/Pilot.h"
+#include "src/guidance/pilot/pilot.h"
 #include "src/environment/environment.h"
 #include "src/guidance/drivers/solenoid/solenoid.h"
 
@@ -23,11 +23,14 @@
 Environment environment; // contains all of our sensors in one nice class
 Pilot pilot;             // takes environmental input and makes all decisions regarding flight control
 
+Solenoid *parafoil_sol;
+Solenoid *cutdown_sol;
+
 elapsedMillis timeElapsed; // time elapsed in milliseconds
 
-uint8_t flight_state = 0; // current flight state
-long fly_time = 0;        // amount of time passed between flight controlling
-bool didwake = false;     // whether or not we have woken the pilot yet
+static uint8_t flight_state = 0; // current flight state
+long fly_time = 0;               // amount of time passed between flight controlling
+bool didwake = false;            // whether or not we have woken the pilot yet
 
 /* 
  * Arduino setup function, first function to be run.
@@ -92,12 +95,13 @@ void loop()
     if (environment.bmp->getAltitude() > CUTDOWN_ALT)
     { // at the cutdown altiude perform cutdown, deploy, and transition to FS2 [DESCENT]
       // CUTDOWN
-      cutdown();
+      cutdown_sol->secure();
 
-      if (!cutdown_switch())
+      if (!cutdown_sol->read_switch())
       { // we want to make sure that we have cut down
         Serial << F("\n!!!! CUTDOWN ERROR DETECTED !!!!\n");
-        cutdown(); // try cutdown again, probably won't do much
+        cutdown_sol->secure();
+        ; // try cutdown again, probably won't do much
       }
 
       // PARAFOIL DEPLOY
@@ -107,12 +111,12 @@ void loop()
         print_data();
       }
 
-      parafoil_deploy();
+      parafoil_sol->secure();
 
-      if (parafoil_switch())
+      if (parafoil_sol->read_switch())
       { // make sure the parafoil has deployed
         Serial << F("\n!!!! PARAFOIL DEPLOYMENT ERROR DETECTED !!!!\n");
-        parafoil_deploy(); // try deploying parafoil again, probably won't do much
+        parafoil_sol->secure(); // try deploying parafoil again, probably won't do much
       }
 
       delay(DEPLOY_DELAY); // wait for the parafoil to deploy/inflate before we begin guidance
@@ -214,7 +218,7 @@ void print_data()
          << F(",") << _FLOAT(environment.bno->data.orientation.z, 4) << F(",");
 
   // cutdown switch, parafoil switch, turn status, flight state
-  Serial << cutdown_switch() << F(",") << parafoil_switch() << F(",")
+  Serial << cutdown_sol->read_switch() << F(",") << parafoil_sol->read_switch() << F(",")
          << pilot.get_turn() << F(",") << flight_state << "\n"; // write everything to SD card
 }
 
@@ -234,9 +238,11 @@ void startup_sequence(void)
   }
 
   // intialize solenoids, should hear them click and see the indicator LEDs turn on
-  sol_init();
-  cutdown_switch();
-  parafoil_switch();
+  parafoil_sol = new Solenoid(9, A0, A2);
+  cutdown_sol = new Solenoid(8, A1, A3);
+
+  cutdown_sol->secure();
+  parafoil_sol->secure();
 
   // initialize servos, if we're in flight state 0 we'll test them as well
   pilot.servo_init();

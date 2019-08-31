@@ -1,15 +1,15 @@
 /*
-  pathfinder.h - 
+  pathfinder.h -
 	DESCRIPTION NEEDED.
 	Part of the RAPTOR project, authors: Sean Widmier, Colin Oberthur
 */
-#include "Pathfinder.h"
+#include "pathfinder.h"
 #include <stdlib.h>
 
 /* PUBLIC METHODS */
 
 /*
- *  Constructor for Pathfinder 
+ *  Constructor for Pathfinder
  */
 Pathfinder::Pathfinder(Coordinate current, Coordinate target)
 {
