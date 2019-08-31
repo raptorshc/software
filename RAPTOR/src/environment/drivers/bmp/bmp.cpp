@@ -16,7 +16,7 @@ bool BMP::init(bool set_baseline)
   // check to make sure it initializes properly
   if (!this->begin())
   { // begin bmp measurements
-    Serial.print(F("No BMP detected!"));
+    Serial.print(F("No BMP detected!\n"));
     return false;
   }
 

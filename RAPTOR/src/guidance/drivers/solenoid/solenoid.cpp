@@ -17,12 +17,12 @@ Solenoid::Solenoid(uint8_t data, uint8_t sw, uint8_t led)
     pinMode(this->led_pin, OUTPUT); // led indicator
 }
 
-void Solenoid::release(void)
+void Solenoid::secure(void)
 {
     digitalWrite(this->dta_pin, LOW);
 }
 
-void Solenoid::secure(void)
+void Solenoid::release(void)
 {
     digitalWrite(this->dta_pin, HIGH);
 }

@@ -13,7 +13,7 @@ bool BNO::init(void)
 {
     if (!this->begin())
     {
-        Serial.print(F("No BNO055 detected!"));
+        Serial.print(F("No BNO055 detected!\n"));
         return false;
     }
     //calibrate here
