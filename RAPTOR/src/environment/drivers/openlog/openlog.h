@@ -1,19 +1,18 @@
-// /*
-//   openlog.cpp -
-// 	DESCRIPTION NEEDED.
-// 	Part of the RAPTOR project, authors: Sean Widmier, Colin Oberthur
-// */
+/*
+  openlog.h -
+	DESCRIPTION NEEDED.
+	Part of the RAPTOR project, authors: Sean Widmier, Colin Oberthur
+*/
 
-// #include "Arduino.h"
-// #include <SoftwareSerial.h> // This allows it to communicate with the Arduino's Serial Ports
+#include "Arduino.h"
 
-// class Openlog
-//     : SoftwareSerial
-// {
-// public:
-//     Openlog(int rx, int tx);
-//     char *read(char *request);
+class Openlog
+{
+public:
+    Openlog();
+    char *read(char *request);
+    void write(String input);
 
-// private:
-//     void command(void);
-// };
+private:
+    void command(void);
+};

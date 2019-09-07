@@ -18,6 +18,7 @@ Raptor::Raptor()
 {
     this->parafoil_sol = new Solenoid(9, A0, A2);
     this->cutdown_sol = new Solenoid(8, A1, A3);
+    this->openlog = new Openlog();
 
     this->environment = Environment::getInst();
     this->eeprom = new Prom();
@@ -26,10 +27,8 @@ Raptor::Raptor()
 
 void Raptor::init(void)
 {
-    Serial.begin(115200);
     time_elapsed = 0;
-
-    Serial << "begin init\n";
+    this->openlog->write("begin init\n");
 
     /* Buzzer and LEDs */
     pinMode(BZZ_DTA, OUTPUT);  // Set buzzer to output
@@ -41,13 +40,13 @@ void Raptor::init(void)
     pinMode(SET_BTN, OUTPUT);
     // if (digitalRead(SET_BTN))
     // {
-    //     Serial << "Write EEPROM\n";
-    //     eeprom->write_state(this->flight_state, environment->bmp->baseline);
+    //     this->openlog->write("Write EEPROM\n");
+    //     eeprom->write_state(this->flight_state, environment->bmp->baseline));
     // }
     // else
     // {
-    //     Serial << "Read EEPROM\n";
-    //     eeprom->read_state(&this->flight_state, &environment->bmp->baseline);
+    //     this->openlog->write("Read EEPROM\n");
+    //     eeprom->read_state(&this->flight_state, &environment->bmp->baseline));
 
     //     // print retrieved data
     //     Serial << "Saved flight state: " << this->flight_state;
@@ -57,12 +56,12 @@ void Raptor::init(void)
     startup_sequence();
 
     delay(10);
-    Serial.print(F("TIME,"
-                   "TEMPERATURE,PRESSURE,ALTITUDE,"
-                   "LATITUDE,LONGITUDE,ANGLE,GPS_ALT,"
-                   "X,Y,Z, "
-                   "SWC,SWP,"
-                   "TURN,FLIGHT_STATE\n")); // data header
+    Serial.print("TIME,"
+                 "TEMPERATURE,PRESSURE,ALTITUDE,"
+                 "LATITUDE,LONGITUDE,ANGLE,GPS_ALT,"
+                 "X,Y,Z, "
+                 "SWC,SWP,"
+                 "TURN,FLIGHT_STATE\n"); // data header
 }
 
 void Raptor::launch()
@@ -87,7 +86,7 @@ void Raptor::ascent()
 
         if (!this->cutdown_sol->read_switch())
         { // we want to make sure that we have cut down
-            Serial << F("\n!!!! CUTDOWN ERROR DETECTED !!!!\n");
+            this->openlog->write("\n!!!! CUTDOWN ERROR DETECTED !!!!\n");
             this->cutdown_sol->release(); // try cutdown again, probably won't do much
         }
 
@@ -102,7 +101,7 @@ void Raptor::ascent()
 
         if (!this->parafoil_sol->read_switch())
         { // make sure the parafoil has deployed
-            Serial << F("\n!!!! PARAFOIL DEPLOYMENT ERROR DETECTED !!!!\n");
+            this->openlog->write("\n!!!! PARAFOIL DEPLOYMENT ERROR DETECTED !!!!\n");
             this->parafoil_sol->release(); // try deploying parafoil again, probably won't do much
         }
 
@@ -132,7 +131,7 @@ void Raptor::descent()
         target.longitude = TARGET_LONG;
 
         // then wake the pilot and give it the coordinates
-        Serial << "Waking pilot\n";
+        this->openlog->write("Waking pilot\n");
         pilot->wake(current, target);
         didwake = true;
     }
@@ -150,7 +149,7 @@ void Raptor::descent()
         { // make sure that we have landed by checking the altitude constantly
             pilot->sleep();
             this->flight_state = 3;
-            Serial << "\n!!!! LANDED !!!!\n";
+            this->openlog->write("\n!!!! LANDED !!!!\n");
         }
     }
 
@@ -185,7 +184,7 @@ void Raptor::rc_test()
 
     delay(1000); // wait 5 seconds before starting
 
-    Serial << "Starting RC Test!\n";
+    this->openlog->write("Starting RC Test!\n");
 
     pilot->servo_init();
     while (true)
@@ -196,14 +195,14 @@ void Raptor::rc_test()
         int para_value = Read_RC_Analog(A1);
         int cutdown_value = Read_RC_Analog(A0);
 
-        Serial << "Parafoil: " << para_value << ", Cutdown: " << cutdown_value << "\n";
+        //Serial << "Parafoil: " << para_value << ", Cutdown: " << cutdown_value << "\n";
         // Prevents random noise saying that both switches are triggered
 
         //if(para_value == 1 && cutdown_value == 0)
         //{
         //    para_value = 1022;
         //    cutdown_value = 1022;
-        //    Serial << "Both HIGH\n";
+        //    this->openlog->write("Both HIGH\n";
         //}
 
         // Outputs current value to serial
@@ -215,13 +214,13 @@ void Raptor::rc_test()
         {
             // right analog stick all the way up
             cutdown_sol->secure();
-            Serial << "Cutdown Solenoid: Closed.\n";
+            this->openlog->write("Cutdown Solenoid: Closed.\n");
             analogWrite(A2, 255);
         }
         else
         {
             cutdown_sol->release();
-            Serial << "Cutdown Solenoid: Open.\n";
+            this->openlog->write("Cutdown Solenoid: Open.\n");
             analogWrite(A2, 0);
         }
 
@@ -230,13 +229,13 @@ void Raptor::rc_test()
         {
             // right analog stick all the way down
             parafoil_sol->secure();
-            Serial << "Parafoil Solenoid Closed. \n";
+            this->openlog->write("Parafoil Solenoid Closed. \n");
             analogWrite(A3, 255);
         }
         else
         {
             parafoil_sol->release();
-            Serial << "Parafoil Solenoid Open. \n";
+            this->openlog->write("Parafoil Solenoid Open. \n");
             analogWrite(A3, 0);
         }
     }
@@ -247,24 +246,25 @@ void Raptor::rc_test()
  */
 void Raptor::print_data()
 {
+    String data = "hi";
     environment->update();
 
     /* Let's spray the serial port with a hose of data */
     // time, temperature, pressure, altitude,
-    Serial << time_elapsed << F(",") << environment->bmp->readTemperature() << F(",") << environment->bmp->getPressure()
-           << F(",") << environment->bmp->getAltitude() << F(",");
+    // data += _FLOAT(time_elapsed, 1) + "," + _FLOAT(environment->bmp->readTemperature(), 2) + (",") + _FLOAT(environment->bmp->getPressure(), 2) + "," + _FLOAT(environment->bmp->getAltitude(), 2) + ",";
 
-    // latitude, longitude, angle, (gps) altitude,
-    Serial << _FLOAT(environment->gps->latitude, 7) << F(",") << _FLOAT(environment->gps->longitude, 7)
-           << F(",") << _FLOAT(environment->gps->angle, 7) << F(",") << environment->gps->altitude << F(",");
+    // // latitude, longitude, angle, (gps) altitude,
+    // data += _FLOAT(environment->gps->latitude, 7) + "," + _FLOAT(environment->gps->longitude, 7) + "," + _FLOAT(environment->gps->angle, 7) + "," + environment->gps->altitude + ",";
 
-    // x orientation, y orientation, z orientation,
-    Serial << _FLOAT(environment->bno->data.orientation.x, 4) << F(",") << _FLOAT(environment->bno->data.orientation.y, 4)
-           << F(",") << _FLOAT(environment->bno->data.orientation.z, 4) << F(",");
+    // // x orientation, y orientation, z orientation,
+    // data += _FLOAT(environment->bno->data.orientation.x, 4) + "," + _FLOAT(environment->bno->data.orientation.y, 4) + "," + _FLOAT(environment->bno->data.orientation.z, 4) + ",";
 
-    // cutdown switch, parafoil switch, turn status, flight state
-    Serial << this->cutdown_sol->read_switch() << F(",") << this->parafoil_sol->read_switch() << F(",")
-           << pilot->get_turn() << F(",") << this->flight_state << "\n"; // write everything to SD card
+    // // cutdown switch, parafoil switch, turn status, flight state
+    // data += this->cutdown_sol->read_switch() + "," + this->parafoil_sol->read_switch() + "," + pilot->get_turn() + "," + this->flight_state + "\n"; // write everything to SD card
+
+    Serial.print(data);
+
+    //this->openlog->write(data);
 }
 
 /*

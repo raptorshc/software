@@ -10,6 +10,7 @@
 #include "drivers/bmp/bmp.h"
 #include "drivers/bno/bno.h"
 #include "drivers/gps/gps.h"
+#include "drivers/openlog/openlog.h"
 
 class Environment
 {

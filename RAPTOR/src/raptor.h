@@ -36,6 +36,8 @@ private:
   Pilot *pilot;
   Prom *eeprom;
 
+  Openlog *openlog;
+
   Solenoid *parafoil_sol;
   Solenoid *cutdown_sol;
 
