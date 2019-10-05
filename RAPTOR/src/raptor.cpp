@@ -4,6 +4,7 @@
     Part of the RAPTOR project, authors: Sean Widmier, Colin Oberthur
 */
 #include "raptor.h"
+#include <string.h>
 #include <Streaming.h> // http://arduiniana.org/libraries/streaming/
 
 #include "test/test.h"
@@ -28,6 +29,7 @@ Raptor::Raptor()
 void Raptor::init(void)
 {
     time_elapsed = 0;
+    this->openlog->init();
     this->openlog->write("begin init\n");
 
     /* Buzzer and LEDs */
@@ -75,6 +77,7 @@ void Raptor::launch()
     // blink the LEDs and print data at a rate of 1Hz
     blink_led(1000);
     print_data();
+    save_data();
 }
 
 void Raptor::ascent()
@@ -113,7 +116,8 @@ void Raptor::ascent()
 
     // blink the LEDs and print data at a rate of 5Hz
     blink_led(200);
-    print_data();
+    // print_data();
+    save_data();
 }
 
 void Raptor::descent()
@@ -155,7 +159,8 @@ void Raptor::descent()
 
     // blink the LEDs and print data at 10Hz
     blink_led(100);
-    print_data();
+    // print_data();
+    save_data();
 }
 
 void Raptor::landed()
@@ -166,7 +171,8 @@ void Raptor::landed()
     analogWrite(BZZ_DTA, 0);
 
     delay(200);
-    print_data();
+    // print_data();
+    save_data();
 }
 
 /*
@@ -238,33 +244,55 @@ void Raptor::rc_test()
             this->openlog->write("Parafoil Solenoid Open. \n");
             analogWrite(A3, 0);
         }
+        save_data();
     }
 }
 
 /*
- * print_data updates sensor readings then prints all relevant data to the serial pins.
+ * save_data updates sensor readings then prints all relevant data to the serial pins.
  */
-void Raptor::print_data()
+void Raptor::save_data()
 {
-    String data = "hi";
+    char data[128];
     environment->update();
 
     /* Let's spray the serial port with a hose of data */
+    sprintf(data, "%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d",
+            // time
+            time_elapsed,
+            // bmp temp, press, alt
+            int(environment->bmp->readTemperature() * 1000.0), int(environment->bmp->getPressure()), int(environment->bmp->getAltitude() * 1000.0),
+            // gps lat, logn, angle, alt
+            int(environment->gps->latitude * 1000.0), int(environment->gps->longitude * 1000.0), int(environment->gps->angle * 1000.0), int(environment->gps->altitude * 1000.0),
+            // bno x, y, z
+            int(environment->bno->data.orientation.x * 1000.0), int(environment->bno->data.orientation.y * 1000.0), int(environment->bno->data.orientation.z * 1000.0),
+            // cutdown sw, parafoil sw, pilot turn, flight state
+            int(this->cutdown_sol->read_switch() * 1000.0), int(this->parafoil_sol->read_switch() * 1000.0), int(this->pilot->get_turn() * 1000.0), int(this->flight_state * 1000.0));
+
+    this->openlog->write(data);
+}
+
+/*
+* print_data updates sensor readings then prints all relevant data to the serial pins.
+*/
+void Raptor::print_data()
+{
+    /* Let's spray the serial port with a hose of data */
     // time, temperature, pressure, altitude,
-    // data += _FLOAT(time_elapsed, 1) + "," + _FLOAT(environment->bmp->readTemperature(), 2) + (",") + _FLOAT(environment->bmp->getPressure(), 2) + "," + _FLOAT(environment->bmp->getAltitude(), 2) + ",";
+    Serial << time_elapsed << F(",") << environment->bmp->readTemperature() << F(",") << environment->bmp->getPressure()
+           << F(",") << environment->bmp->getAltitude() << F(",");
 
-    // // latitude, longitude, angle, (gps) altitude,
-    // data += _FLOAT(environment->gps->latitude, 7) + "," + _FLOAT(environment->gps->longitude, 7) + "," + _FLOAT(environment->gps->angle, 7) + "," + environment->gps->altitude + ",";
+    // latitude, longitude, angle, (gps) altitude,
+    Serial << _FLOAT(environment->gps->latitude, 7) << F(",") << _FLOAT(environment->gps->longitude, 7)
+           << F(",") << _FLOAT(environment->gps->angle, 7) << F(",") << environment->gps->altitude << F(",");
 
-    // // x orientation, y orientation, z orientation,
-    // data += _FLOAT(environment->bno->data.orientation.x, 4) + "," + _FLOAT(environment->bno->data.orientation.y, 4) + "," + _FLOAT(environment->bno->data.orientation.z, 4) + ",";
+    // x orientation, y orientation, z orientation,
+    Serial << _FLOAT(environment->bno->data.orientation.x, 4) << F(",") << _FLOAT(environment->bno->data.orientation.y, 4)
+           << F(",") << _FLOAT(environment->bno->data.orientation.z, 4) << F(",");
 
-    // // cutdown switch, parafoil switch, turn status, flight state
-    // data += this->cutdown_sol->read_switch() + "," + this->parafoil_sol->read_switch() + "," + pilot->get_turn() + "," + this->flight_state + "\n"; // write everything to SD card
-
-    Serial.print(data);
-
-    //this->openlog->write(data);
+    // cutdown switch, parafoil switch, turn status, flight state
+    Serial << this->cutdown_sol->read_switch() << F(",") << this->parafoil_sol->read_switch() << F(",")
+           << pilot->get_turn() << F(",") << this->flight_state << "\n"; // write everything to SD card
 }
 
 /*

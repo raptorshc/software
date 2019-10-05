@@ -6,21 +6,29 @@
 #include "openlog.h"
 // use read() , serial.read()
 
+#define RESET_OPENLOG 4
+
 Openlog::Openlog()
 {
-    uint8_t count = 0;
-    int resetOpenLog = 4; //This pin resets OpenLog. Connect pin 4 to pin GRN on OpenLog.
+}
 
-    pinMode(resetOpenLog, OUTPUT);
-    Serial.begin(9600);
+void Openlog::init(void)
+{
+    uint8_t count = 0;
+
+    pinMode(RESET_OPENLOG, OUTPUT);
+    Serial.begin(115200);
+
+    while (!Serial)
+        ;
 
     //Reset OpenLog
-    digitalWrite(resetOpenLog, LOW);
+    digitalWrite(RESET_OPENLOG, LOW);
     delay(100);
-    digitalWrite(resetOpenLog, HIGH);
+    digitalWrite(RESET_OPENLOG, HIGH);
 
     //Wait for OpenLog to respond with '<' to indicate it is alive and recording to a file
-    while (count++ < 5 || !(Serial.available() && Serial.read() == '<'))
+    while ((count++ < 5) && !(Serial.available() && Serial.read() == '<'))
         ;
 }
 
@@ -58,7 +66,7 @@ char *Openlog::read(char *request)
         ;
 }
 
-void Openlog::write(String input)
+void Openlog::write(char *input)
 {
-    Serial.print(input);
+    Serial.println(input);
 }
