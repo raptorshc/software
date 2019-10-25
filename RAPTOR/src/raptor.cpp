@@ -17,8 +17,8 @@ static elapsedMillis time_elapsed;
 
 Raptor::Raptor()
 {
-    this->parafoil_sol = new Solenoid(9, A0, A2);
-    this->cutdown_sol = new Solenoid(8, A1, A3);
+    this->parafoil_sol = new Solenoid(9, A0, A3);
+    this->cutdown_sol = new Solenoid(8, A1, A3); // replace with solc led when reconnected
     this->openlog = new Openlog();
 
     this->environment = Environment::getInst();
@@ -35,6 +35,8 @@ void Raptor::init(void)
     /* Buzzer and LEDs */
     pinMode(BZZ_DTA, OUTPUT);  // Set buzzer to output
     pinMode(LEDS_DTA, OUTPUT); // Set LEDs to output
+
+    pinMode(A2, INPUT); // potentiometer
 
     /* GPS */
     environment->init(true); // for testing pcb
@@ -63,7 +65,7 @@ void Raptor::init(void)
                  "LATITUDE,LONGITUDE,ANGLE,GPS_ALT,"
                  "X,Y,Z, "
                  "SWC,SWP,"
-                 "TURN,FLIGHT_STATE\n"); // data header
+                 "TURN,FLIGHT_STATE, POTENTIOMETER\n"); // data header
 }
 
 void Raptor::launch()
@@ -76,7 +78,7 @@ void Raptor::launch()
 
     // blink the LEDs and print data at a rate of 1Hz
     blink_led(1000);
-    print_data();
+    // print_data();
     save_data();
 }
 
@@ -221,13 +223,13 @@ void Raptor::rc_test()
             // right analog stick all the way up
             cutdown_sol->secure();
             this->openlog->write("Cutdown Solenoid: Closed.\n");
-            analogWrite(A2, 255);
+            // analogWrite(A2, 255);
         }
         else
         {
             cutdown_sol->release();
             this->openlog->write("Cutdown Solenoid: Open.\n");
-            analogWrite(A2, 0);
+            // analogWrite(A2, 0);
         }
 
         // Parafoil cutdown logic
@@ -236,13 +238,13 @@ void Raptor::rc_test()
             // right analog stick all the way down
             parafoil_sol->secure();
             this->openlog->write("Parafoil Solenoid Closed. \n");
-            analogWrite(A3, 255);
+            // analogWrite(A3, 255);
         }
         else
         {
             parafoil_sol->release();
             this->openlog->write("Parafoil Solenoid Open. \n");
-            analogWrite(A3, 0);
+            // analogWrite(A3, 0);
         }
         save_data();
     }
@@ -257,7 +259,7 @@ void Raptor::save_data()
     environment->update();
 
     /* Let's spray the serial port with a hose of data */
-    sprintf(data, "%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d",
+    sprintf(data, "%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d",
             // time
             time_elapsed,
             // bmp temp, press, alt
@@ -267,7 +269,8 @@ void Raptor::save_data()
             // bno x, y, z
             int(environment->bno->data.orientation.x * 1000.0), int(environment->bno->data.orientation.y * 1000.0), int(environment->bno->data.orientation.z * 1000.0),
             // cutdown sw, parafoil sw, pilot turn, flight state
-            int(this->cutdown_sol->read_switch() * 1000.0), int(this->parafoil_sol->read_switch() * 1000.0), int(this->pilot->get_turn() * 1000.0), int(this->flight_state * 1000.0));
+            int(this->cutdown_sol->read_switch() * 1000.0), int(this->parafoil_sol->read_switch() * 1000.0), int(this->pilot->get_turn() * 1000.0), int(this->flight_state * 1000.0),
+            analogRead(A2));
 
     this->openlog->write(data);
 }
@@ -292,7 +295,7 @@ void Raptor::print_data()
 
     // cutdown switch, parafoil switch, turn status, flight state
     Serial << this->cutdown_sol->read_switch() << F(",") << this->parafoil_sol->read_switch() << F(",")
-           << pilot->get_turn() << F(",") << this->flight_state << "\n"; // write everything to SD card
+           << pilot->get_turn() << F(",") << this->flight_state << analogRead(A2) << "\n"; // write everything to SD card
 }
 
 /*
