@@ -33,6 +33,7 @@
 
 #python
 __pycache__/
+venv
 
 #build
 build/
