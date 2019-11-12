@@ -15,7 +15,7 @@
 % general things
 g = -9.8;     % gravity (m/s^2)
 m = 1.58;     % weight of RAPTOR (kg)
-t = 0:30;     % flight time (seconds)
+t = 0:0.1:30;     % flight time (seconds)
 
 % wind variables
 w_v = 5*sin(0.02*pi*t);     % wind speed (m/s)
