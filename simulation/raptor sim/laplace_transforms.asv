@@ -1,0 +1,24 @@
+%% Laplace transforms
+
+% Assumes east, north, up (ENU) coordinates
+% unit velocity functions
+%v_x = w_v .* cos(w_theta) - d_x;
+%v_y = w_v .* sin(w_theta) - d_y;
+%v_z = (m*g) - d_z;
+
+% unit position functions
+%p_x = p_x - w_v .* cos(w_theta) .* t - d_x.*t;
+%p_y = p_y - w_v .* sin(w_theta) .* t - d_y.*t;
+%p_z = p_z - ((m*g)*t - d_z*t);
+
+s = tf('s');
+
+P_x = w_v .* cos(w_theta) .* (1/s^2);
+P_y = w_v .* sin(w_theta) .* (1/s^2);
+P_z = ((m*g)* (1/s^2));
+
+[y,t] = step(P_x,t);
+
+opts = timeoptions;
+opts.Grid = 'on';
+impulseplot(H,opts)
