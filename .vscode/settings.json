@@ -3,5 +3,6 @@
         "*.ino": "arduino-output",
         "*.tcc": "cpp",
         "fstream": "cpp"
-    }
+    },
+    "python.pythonPath": "venv/bin/python"
 }
