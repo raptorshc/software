@@ -12,5 +12,4 @@ int readRC(uint8_t pin);
 int Read_RC_Digital(uint8_t pin);
 int Read_RC_Analog(uint8_t pin);
 
-
 #endif

@@ -5,6 +5,7 @@
 */
 #include "raptor.h"
 #include <Streaming.h> // http://arduiniana.org/libraries/streaming/
+// #include "environment/drivers/logger/logger.h"
 
 #include "test/test.h"
 
@@ -22,6 +23,7 @@ Raptor::Raptor()
     this->environment = Environment::getInst();
     this->eeprom = new Prom();
     pilot = Pilot::getInst();
+    // logger = Logger::getInst();
 }
 
 void Raptor::init(void)
@@ -29,16 +31,16 @@ void Raptor::init(void)
     Serial.begin(115200);
     time_elapsed = 0;
 
-    Serial << "begin init\n";
+    Serial << "begin init!\n";
 
     /* Buzzer and LEDs */
-    pinMode(BZZ_DTA, OUTPUT);  // Set buzzer to output
-    pinMode(LEDS_DTA, OUTPUT); // Set LEDs to output
+    // pinMode(BZZ_DTA, OUTPUT);  // Set buzzer to output
+    // pinMode(LEDS_DTA, OUTPUT); // Set LEDs to output
 
     /* GPS */
     environment->init(true); // for testing pcb
 
-    pinMode(SET_BTN, OUTPUT);
+    // pinMode(SET_BTN, OUTPUT);
     // if (digitalRead(SET_BTN))
     // {
     //     Serial << "Write EEPROM\n";
@@ -54,121 +56,118 @@ void Raptor::init(void)
     //     Serial << "\nSaved baseline: " << environment->bmp->baseline << "\n";
     // }
 
-    startup_sequence();
+    // startup_sequence();
 
     delay(10);
     Serial.print(F("TIME,"
-                   "TEMPERATURE,PRESSURE,ALTITUDE,"
                    "LATITUDE,LONGITUDE,ANGLE,GPS_ALT,"
-                   "X,Y,Z, "
-                   "SWC,SWP,"
-                   "TURN,FLIGHT_STATE\n")); // data header
+                   "X,Y,Z\n")); // data header
 }
 
 void Raptor::launch()
 {
-    if (environment->bmp->getAltitude() > GROUND_ALT)
-    { // at 50ft (15.24 meters), transition to FS1 [ASCENT]
-        this->flight_state = 1;
-        eeprom->write_state(this->flight_state, environment->bmp->baseline);
-    }
+    // if (environment->bmp->getAltitude() > GROUND_ALT)
+    // { // at 50ft (15.24 meters), transition to FS1 [ASCENT]
+    //     this->flight_state = 1;
+    //     eeprom->write_state(this->flight_state, environment->bmp->baseline);
+    // }
 
     // blink the LEDs and print data at a rate of 1Hz
     blink_led(1000);
     print_data();
 }
 
-void Raptor::ascent()
-{
-    if (environment->bmp->getAltitude() > CUTDOWN_ALT)
-    { // at the cutdown altitude perform cutdown, deploy, and transition to FS2 [DESCENT]
-        // CUTDOWN
-        this->cutdown_sol->release();
+// void Raptor::ascent()
+// {
+//     if (environment->bmp->getAltitude() > CUTDOWN_ALT)
+//     { // at the cutdown altitude perform cutdown, deploy, and transition to FS2 [DESCENT]
+//         // CUTDOWN
+//         this->cutdown_sol->release();
 
-        if (!this->cutdown_sol->read_switch())
-        { // we want to make sure that we have cut down
-            Serial << F("\n!!!! CUTDOWN ERROR DETECTED !!!!\n");
-            this->cutdown_sol->release(); // try cutdown again, probably won't do much
-        }
+//         if (!this->cutdown_sol->read_switch())
+//         { // we want to make sure that we have cut down
+//             Serial << F("\n!!!! CUTDOWN ERROR DETECTED !!!!\n");
+//             this->cutdown_sol->release(); // try cutdown again, probably won't do much
+//         }
 
-        // PARAFOIL DEPLOY
-        while (environment->bmp->getAltitude() > CUTDOWN_ALT - 3.048)
-        { // wait 3 meters to deploy the parafoil
-            delay(1);
-            print_data();
-        }
+//         // PARAFOIL DEPLOY
+//         while (environment->bmp->getAltitude() > CUTDOWN_ALT - 3.048)
+//         { // wait 3 meters to deploy the parafoil
+//             delay(1);
+//             print_data();
+//         }
 
-        this->parafoil_sol->release();
+//         this->parafoil_sol->release();
 
-        if (!this->parafoil_sol->read_switch())
-        { // make sure the parafoil has deployed
-            Serial << F("\n!!!! PARAFOIL DEPLOYMENT ERROR DETECTED !!!!\n");
-            this->parafoil_sol->release(); // try deploying parafoil again, probably won't do much
-        }
+//         if (!this->parafoil_sol->read_switch())
+//         { // make sure the parafoil has deployed
+//             Serial << F("\n!!!! PARAFOIL DEPLOYMENT ERROR DETECTED !!!!\n");
+//             this->parafoil_sol->release(); // try deploying parafoil again, probably won't do much
+//         }
 
-        delay(DEPLOY_DELAY); // wait for the parafoil to deploy/inflate before we begin guidance
+//         delay(DEPLOY_DELAY); // wait for the parafoil to deploy/inflate before we begin guidance
 
-        this->flight_state = 2;
-        eeprom->write_state(this->flight_state, environment->bmp->baseline);
-    }
+//         this->flight_state = 2;
+//         eeprom->write_state(this->flight_state, environment->bmp->baseline);
+//     }
 
-    // blink the LEDs and print data at a rate of 5Hz
-    blink_led(200);
-    print_data();
-}
+//     // blink the LEDs and print data at a rate of 5Hz
+//     blink_led(200);
+//     print_data();
+// }
 
-void Raptor::descent()
-{
-    // if we have yet to wake the pilot, do so
-    if (!didwake)
-    {
-        // first set up our coordinates
-        Coordinate current, target;
+// void Raptor::descent()
+// {
+//     // if we have yet to wake the pilot, do so
+//     if (!didwake)
+//     {
+//         // first set up our coordinates
+//         Coordinate current, target;
 
-        current.latitude = environment->gps->latitude;
-        current.longitude = environment->gps->longitude;
+//         current.latitude = environment->gps->latitude;
+//         current.longitude = environment->gps->longitude;
 
-        target.latitude = TARGET_LAT;
-        target.longitude = TARGET_LONG;
+//         target.latitude = TARGET_LAT;
+//         target.longitude = TARGET_LONG;
 
-        // then wake the pilot and give it the coordinates
-        Serial << "Waking pilot\n";
-        pilot->wake(current, target);
-        didwake = true;
-    }
+//         // then wake the pilot and give it the coordinates
+//         Serial << "Waking pilot\n";
+//         pilot->wake(current, target);
+//         didwake = true;
+//     }
 
-    fly_time = time_elapsed;
-    if (fly_time > FLY_DELAY)
-    {                                        // don't want to constantly call fly
-        pilot->fly(environment->gps->angle); // the pilot just needs our current angle to do his calculations
-        fly_time = 0;
-    }
+//     fly_time = time_elapsed;
+//     if (fly_time > FLY_DELAY)
+//     {                                        // don't want to constantly call fly
+//         pilot->fly(environment->gps->angle); // the pilot just needs our current angle to do his calculations
+//         fly_time = 0;
+//     }
 
-    if (environment->bmp->getAltitude() < GROUND_ALT)
-    { // at 50ft (15.24 meters), transition to FS3 [LANDED]
-        if (environment->landing_check())
-        { // make sure that we have landed by checking the altitude constantly
-            pilot->sleep();
-            this->flight_state = 3;
-            Serial << "\n!!!! LANDED !!!!\n";
-        }
-    }
+//     if (environment->bmp->getAltitude() < GROUND_ALT)
+//     { // at 50ft (15.24 meters), transition to FS3 [LANDED]
+//         if (environment->landing_check())
+//         { // make sure that we have landed by checking the altitude constantly
+//             pilot->sleep();
+//             this->flight_state = 3;
+//             Serial << "\n!!!! LANDED !!!!\n";
+//         }
+//     }
 
-    // blink the LEDs and print data at 10Hz
-    blink_led(100);
-    print_data();
-}
+//     // blink the LEDs and print data at 10Hz
+//     blink_led(100);
+//     print_data();
+// }
 
-void Raptor::landed()
-{
-    // in the landed state, only toggle the LEDs and buzzer every 2 seconds, then print data
-    analogWrite(BZZ_DTA, 200);
-    blink_led(2000);
-    analogWrite(BZZ_DTA, 0);
+// void Raptor::landed()
+// {
+//     // in the landed state, only toggle the LEDs and buzzer every 2 seconds, then print data
+//     analogWrite(BZZ_DTA, 200);
+//     blink_led(2000);
+//     analogWrite(BZZ_DTA, 0);
 
-    delay(200);
-    print_data();
-}
+//     delay(200);
+//     print_data();
+// }
 
 /*
  * Keeps Raptor in state to allow testing of parafoil control using RC receiver.
@@ -247,12 +246,12 @@ void Raptor::rc_test()
  */
 void Raptor::print_data()
 {
-    environment->update();
+    // environment->update();
 
     /* Let's spray the serial port with a hose of data */
     // time, temperature, pressure, altitude,
-    Serial << time_elapsed << F(",") << environment->bmp->readTemperature() << F(",") << environment->bmp->getPressure()
-           << F(",") << environment->bmp->getAltitude() << F(",");
+    Serial << time_elapsed << F(","); // << environment->bmp->readTemperature() << F(",") << environment->bmp->getPressure()
+        //    << F(",") << environment->bmp->getAltitude() << F(",");
 
     // latitude, longitude, angle, (gps) altitude,
     Serial << _FLOAT(environment->gps->latitude, 7) << F(",") << _FLOAT(environment->gps->longitude, 7)
@@ -260,11 +259,22 @@ void Raptor::print_data()
 
     // x orientation, y orientation, z orientation,
     Serial << _FLOAT(environment->bno->data.orientation.x, 4) << F(",") << _FLOAT(environment->bno->data.orientation.y, 4)
-           << F(",") << _FLOAT(environment->bno->data.orientation.z, 4) << F(",");
+           << F(",") << _FLOAT(environment->bno->data.orientation.z, 4) << "\n";
 
     // cutdown switch, parafoil switch, turn status, flight state
-    Serial << this->cutdown_sol->read_switch() << F(",") << this->parafoil_sol->read_switch() << F(",")
-           << pilot->get_turn() << F(",") << this->flight_state << "\n"; // write everything to SD card
+    // Serial << this->cutdown_sol->read_switch() << F(",") << this->parafoil_sol->read_switch() << F(",")
+    //        << pilot->get_turn() << F(",") << this->flight_state << "\n"; // write everything to SD card
+
+    // char data[256];
+    // // time, temperature, pressure, altitude,
+    // sprintf(data, "%d,%d,%d,%d,%d,%d,%d,%d\n", time_elapsed,
+    //         environment->gps->latitude, environment->gps->longitude, environment->gps->angle, environment->gps->altitude,
+    //         environment->bno->data.orientation.y, environment->bno->data.orientation.y, environment->bno->data.orientation.y);
+
+    // // Serial << "hello\n";
+    // // sprintf(data, "test\n");
+    // Serial << data;
+    // logger->file.write(data);
 }
 
 /*
@@ -338,4 +348,10 @@ void Raptor::beep(int length, bool blink = false)
     else
         delay(length);
     analogWrite(BZZ_DTA, 0);
+}
+
+void Raptor::sensor_demo()
+{
+    delay(1000);
+    print_data();
 }

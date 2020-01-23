@@ -23,6 +23,7 @@ public:
   void landed();
 
   void rc_test();
+  void sensor_demo();
 
   Environment *environment;
   uint8_t flight_state = 0; // current flight state
@@ -35,6 +36,7 @@ private:
 
   Pilot *pilot;
   Prom *eeprom;
+  Logger *logger;
 
   Solenoid *parafoil_sol;
   Solenoid *cutdown_sol;

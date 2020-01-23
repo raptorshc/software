@@ -7,9 +7,9 @@
 #define ENVIRONMENT_h
 
 #include <elapsedMillis.h>
-#include "drivers/bmp/bmp.h"
 #include "drivers/bno/bno.h"
 #include "drivers/gps/gps.h"
+#include "drivers/logger/logger.h"
 
 class Environment
 {
@@ -24,7 +24,6 @@ public:
   bool landing_check(void);
   bool cutdown_check(void);
 
-  BMP *bmp;
   BNO *bno;
   GPS *gps;
 

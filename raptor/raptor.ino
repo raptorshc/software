@@ -20,23 +20,24 @@ void setup()
 
 void loop()
 {
-    switch (raptor->flight_state)
-    {
-    case 0:
-        raptor->launch();
-        break;
-    case 1:
-        raptor->ascent();
-        break;
-    case 2:
-        raptor->descent();
-        break;
-    case 3:
-        raptor->landed();
-        break;
-    default:
-        raptor->flight_state = 2;
-    }
+    raptor->sensor_demo();
+    // switch (raptor->flight_state)
+    // {
+    // case 0:
+    // raptor->launch();
+    //     break;
+    // case 1:
+    //     raptor->ascent();
+    //     break;
+    // case 2:
+    //     raptor->descent();
+    //     break;
+    // case 3:
+    //     raptor->landed();
+    //     break;
+    // default:
+    //     raptor->flight_state = 2;
+    // }
 }
 
 // Interrupt is called once a millisecond, looks for any new GPS data, and stores it
