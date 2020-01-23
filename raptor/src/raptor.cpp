@@ -17,13 +17,10 @@ static elapsedMillis time_elapsed;
 
 Raptor::Raptor()
 {
-    this->parafoil_sol = new Solenoid(9, A0, A2);
-    this->cutdown_sol = new Solenoid(8, A1, A3);
-
     this->environment = Environment::getInst();
-    this->eeprom = new Prom();
+    // this->eeprom = new Prom();
     pilot = Pilot::getInst();
-    // logger = Logger::getInst();
+    logger = Logger::getInst();
 }
 
 void Raptor::init(void)
@@ -38,8 +35,9 @@ void Raptor::init(void)
     // pinMode(LEDS_DTA, OUTPUT); // Set LEDs to output
 
     /* GPS */
-    environment->init(true); // for testing pcb
+    // environment->init(true);
 
+    /* EEPROM */
     // pinMode(SET_BTN, OUTPUT);
     // if (digitalRead(SET_BTN))
     // {
@@ -56,7 +54,7 @@ void Raptor::init(void)
     //     Serial << "\nSaved baseline: " << environment->bmp->baseline << "\n";
     // }
 
-    // startup_sequence();
+    startup_sequence();
 
     delay(10);
     Serial.print(F("TIME,"
@@ -170,78 +168,6 @@ void Raptor::launch()
 // }
 
 /*
- * Keeps Raptor in state to allow testing of parafoil control using RC receiver.
- */
-void Raptor::rc_test()
-{
-    // Solenoid secure() = can be engaged
-    // Solenoid release() = releases an engaged solenoid
-    static const uint8_t parafoil_pin = 7;
-    static const uint8_t cutdown_pin = 4;
-
-    pinMode(parafoil_pin, INPUT);
-    pinMode(cutdown_pin, INPUT);
-
-    delay(1000); // wait 5 seconds before starting
-
-    Serial << "Starting RC Test!\n";
-
-    pilot->servo_init();
-    while (true)
-    {
-        //int para_value = Read_RC_Digital(parafoil_pin);
-        //int cutdown_value = Read_RC_Digital(cutdown_pin);
-        //int test = analogRead(A0);
-        int para_value = Read_RC_Analog(A1);
-        int cutdown_value = Read_RC_Analog(A0);
-
-        Serial << "Parafoil: " << para_value << ", Cutdown: " << cutdown_value << "\n";
-        // Prevents random noise saying that both switches are triggered
-
-        //if(para_value == 1 && cutdown_value == 0)
-        //{
-        //    para_value = 1022;
-        //    cutdown_value = 1022;
-        //    Serial << "Both HIGH\n";
-        //}
-
-        // Outputs current value to serial
-        //Serial << "Digital read (parafoil): " << para_value << "\n";
-        //Serial << "Digital read (cutdown): " << cutdown_value << "\n\n";
-
-        // Balloon/Drone cutdown logic
-        if (cutdown_value > 1000)
-        {
-            // right analog stick all the way up
-            cutdown_sol->secure();
-            Serial << "Cutdown Solenoid: Closed.\n";
-            analogWrite(A2, 255);
-        }
-        else
-        {
-            cutdown_sol->release();
-            Serial << "Cutdown Solenoid: Open.\n";
-            analogWrite(A2, 0);
-        }
-
-        // Parafoil cutdown logic
-        if (para_value > 1000)
-        {
-            // right analog stick all the way down
-            parafoil_sol->secure();
-            Serial << "Parafoil Solenoid Closed. \n";
-            analogWrite(A3, 255);
-        }
-        else
-        {
-            parafoil_sol->release();
-            Serial << "Parafoil Solenoid Open. \n";
-            analogWrite(A3, 0);
-        }
-    }
-}
-
-/*
  * print_data updates sensor readings then prints all relevant data to the serial pins.
  */
 void Raptor::print_data()
@@ -285,20 +211,12 @@ void Raptor::print_data()
 void Raptor::startup_sequence(void)
 {
     // indicate board power with a buzzer beep if in flight state 0
-    if (this->flight_state == 0)
-    {
-        beep(500);
-    }
+    // if (this->flight_state == 0)
+    // {
+    //     beep(500);
+    // }
 
-    // initialize solenoids, should hear them click and see the indicator LEDs turn on
-    parafoil_sol->secure();
-    parafoil_sol->read_switch();
-
-    cutdown_sol->secure();
-    parafoil_sol->read_switch();
-
-    // initialize servos, if we're in flight state 0 we'll test them as well
-    pilot->servo_init();
+    // if we're in flight state 0 test the servos
     if (this->flight_state == 0)
     {
         pilot->servo_test(); // rotates and resets each servo
@@ -308,21 +226,21 @@ void Raptor::startup_sequence(void)
     // initialize sensors, then indicate if we were successful or not
     if (environment->init(this->flight_state))
     { // if the initialization was successful and we're in flight state 0 blink 5 times
-        if (this->flight_state == 0)
-        {
-            for (int i = 0; i < 5; i++)
-                blink_led(500);
-        }
+        // if (this->flight_state == 0)
+        // {
+        //     for (int i = 0; i < 5; i++)
+        //         blink_led(500);
+        // }
     }
     else
     { // if the initialization was unsuccessful and we're in flight state 1 beep & blink 15 times
-        if (this->flight_state == 0)
-        {
-            for (int i = 0; i < 15; i++)
-            {
-                beep(500, true);
-            }
-        }
+        // if (this->flight_state == 0)
+        // {
+        //     for (int i = 0; i < 15; i++)
+        //     {
+        //     beep(500, true);
+        //     }
+        // }
     }
 }
 

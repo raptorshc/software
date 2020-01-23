@@ -7,13 +7,9 @@
 #include <stdio.h>
 #include <Arduino.h>
 
-#define SRVOR_DTA 6 // Right servo
-#define SRVOL_DTA 5 // Left servo
-
-#define STRAIGHT 2
+#define SRVO_DTA 5 // servo pin
 
 /* PUBLIC METHODS */
-
 /*
  *
  */
@@ -46,38 +42,19 @@ void Pilot::wake(Coordinate current, Coordinate target)
  */
 void Pilot::fly(float curr_angle)
 {
-    target_turn = find_turn(curr_angle);
+    turn_state target_turn = find_turn(curr_angle);
     if (target_turn != current_turn)
     {
-        if (target_turn == STRAIGHT)
-        {
-            straight();
-        }
-        else if (target_turn == ContinuousServo::LEFT)
-        {
-            turn_left();
-        }
-        else
-        {
-            turn_right();
-        }
+        turn(target_turn);
     }
 }
 
 /*
- * servoR_status acts as a public accessor for the read method of servoR
+ * servo_status acts as a public accessor for the read method of servo
  */
-int Pilot::servoR_status(void)
+int Pilot::servo_status(void)
 {
-    return servoR->readMicroseconds();
-}
-
-/*
- * servoR_status acts as a public accessor for the read method of servoL
- */
-int Pilot::servoL_status(void)
-{
-    return servoL->readMicroseconds();
+    return servo->readMicroseconds();
 }
 
 /*
@@ -85,7 +62,7 @@ int Pilot::servoL_status(void)
  */
 int Pilot::get_turn(void)
 {
-    return current_turn;
+    return this->current_turn;
 }
 
 /*
@@ -93,24 +70,15 @@ int Pilot::get_turn(void)
  */
 void Pilot::servo_test(void)
 {
-    servoL->turn();
+    turn(turn_state::left);
     delay(500);
-    servoL->reset();
+    turn(turn_state::straight);
 
     delay(1000);
 
-    servoR->turn();
+    turn(turn_state::right);
     delay(500);
-    servoR->reset();
-}
-
-/*
- * servo_init initializes both the left and right servos
- */
-void Pilot::servo_init(void)
-{
-    this->servoR = new ContinuousServo(ContinuousServo::RIGHT, SRVOR_DTA);
-    this->servoL = new ContinuousServo(ContinuousServo::LEFT, SRVOL_DTA);
+    turn(turn_state::straight);
 }
 
 /*
@@ -118,17 +86,17 @@ void Pilot::servo_init(void)
  */
 void Pilot::sleep(void)
 {
-    straight();
+    turn(turn_state::straight);
 }
-/* PRIVATE METHODS */
 
+/* PRIVATE METHODS */
 /*
  *  Constructor for Pilot
  */
 Pilot::Pilot()
 {
-    this->current_turn = STRAIGHT;
-    this->target_turn = STRAIGHT;
+    this->current_turn = turn_state::straight;
+    servo = new Servo();
 }
 
 /*
@@ -140,7 +108,7 @@ int Pilot::find_turn(float curr_angle)
     float alpha_angle, beta_angle;
 
     if (abs(abs(curr_angle - desired_heading) - 360) < 15 || abs(desired_heading - curr_angle) < 15)
-        return STRAIGHT; // if the difference between our current and desired heading is less than 15,  continue straight
+        return turn_state::straight; // if the difference between our current and desired heading is less than 15,  continue straight
 
     alpha_angle = desired_heading + 90; // alpha angle is in the quadrant to the left of our target angle
     beta_angle = desired_heading + 270; // beta angle is in the quadrant to the right
@@ -162,55 +130,33 @@ int Pilot::find_turn(float curr_angle)
 
     /* If we are closer to the left, turn right, and vice versa */
     if (alpha_dif > beta_dif)
-        return ContinuousServo::RIGHT;
+        return turn_state::right;
     else
-        return ContinuousServo::LEFT;
+        return turn_state::left;
 }
 
-/*
- *  Makes the box take a right turn
- */
-void Pilot::turn_right()
+void Pilot::turn(turn_state direction)
 {
-    if (current_turn == ContinuousServo::LEFT)
-        straight();
-    if (current_turn != ContinuousServo::RIGHT)
+    if (direction == this->current_turn)
+        return;
+    servo->attach(SRVO_DTA);
+    if (direction == turn_state::straight)
     {
-        servoR->turn();
-        current_turn = ContinuousServo::RIGHT;
-        Serial.print("Turn: right.\n");
+        servo->writeMicroseconds(this->SRVO_STRAIGHT); // straighten out the servos
+        this->current_turn = turn_state::straight;
+        Serial.print("Turn: straight\n");
     }
-}
-
-/*
-* Makes the box take a left turn
-*/
-void Pilot::turn_left()
-{
-    if (current_turn == ContinuousServo::RIGHT)
-        straight();
-    if (current_turn != ContinuousServo::LEFT)
+    else if (direction == turn_state::right)
     {
-        servoL->turn();
-        current_turn = ContinuousServo::LEFT;
-        Serial.print("Turn: left.\n");
+        servo->writeMicroseconds(this->SRVO_RIGHT);
+        this->current_turn = turn_state::right;
+        Serial.print("Turn: right\n");
     }
-}
-
-/*
-* Straightens out the payload
-*/
-void Pilot::straight()
-{
-    if (current_turn == ContinuousServo::RIGHT)
-    {
-        servoR->reset();
-        Serial.print("Turn: straight from right.\n");
+    else
+    { // left turn
+        servo->writeMicroseconds(this->SRVO_LEFT);
+        this->current_turn = turn_state::left;
+        Serial.print("Turn: left\n");
     }
-    else if (current_turn == ContinuousServo::LEFT)
-    {
-        servoL->reset();
-        Serial.print("Turn: straight from left.\n");
-    }
-    current_turn = STRAIGHT;
+    servo->detach(); // detach to save power
 }

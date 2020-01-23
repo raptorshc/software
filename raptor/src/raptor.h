@@ -8,7 +8,6 @@
 
 #include "guidance/pilot/pilot.h"
 #include "environment/environment.h"
-#include "guidance/drivers/solenoid/solenoid.h"
 #include "guidance/drivers/eeprom/eeprom.h"
 
 class Raptor
@@ -22,7 +21,6 @@ public:
   void descent();
   void landed();
 
-  void rc_test();
   void sensor_demo();
 
   Environment *environment;
@@ -37,9 +35,6 @@ private:
   Pilot *pilot;
   Prom *eeprom;
   Logger *logger;
-
-  Solenoid *parafoil_sol;
-  Solenoid *cutdown_sol;
 
   long fly_time = 0;    // amount of time passed between flight controlling
   bool didwake = false; // whether or not we have woken the pilot yet

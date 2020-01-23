@@ -19,7 +19,7 @@ Logger *Logger::getInst()
 }
 
 /*
- * init checks for a valid SD card name and creates a new file
+ * init checks for a valid SD card file name and creates a new file
  */
 void Logger::init(void)
 {
