@@ -50,7 +50,7 @@ Environment::Environment()
     this->bno = BNO::getInst();
 
     /* GPS */
-    SoftwareSerial *gps_serial = new SoftwareSerial(3, 2); // GPS serial comm pins
+    SoftwareSerial *gps_serial = new SoftwareSerial(0, 1); // GPS serial comm pins
     //this->gps = new GPS(*gps_serial);
-    this->gps = &GPS::getInst(*gps_serial);
+    this->gps = new GPS(gps_serial);
 }

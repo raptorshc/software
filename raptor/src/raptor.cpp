@@ -180,8 +180,8 @@ void Raptor::print_data()
         //    << F(",") << environment->bmp->getAltitude() << F(",");
 
     // latitude, longitude, angle, (gps) altitude,
-    Serial << _FLOAT(environment->gps->latitude, 7) << F(",") << _FLOAT(environment->gps->longitude, 7)
-           << F(",") << _FLOAT(environment->gps->angle, 7) << F(",") << environment->gps->altitude << F(",");
+    Serial << (float)environment->gps->location.lat() << F(",") << (float)environment->gps->location.lng()
+           << F(",") << (float)environment->gps->course.deg() << F(",") << (float)environment->gps->altitude.meters() << F(",");
 
     // x orientation, y orientation, z orientation,
     Serial << _FLOAT(environment->bno->data.orientation.x, 4) << F(",") << _FLOAT(environment->bno->data.orientation.y, 4)

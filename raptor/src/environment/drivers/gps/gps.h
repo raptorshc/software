@@ -7,13 +7,18 @@
 #ifndef GPS_H_
 #define GPS_H_
 
-#include <Adafruit_GPS.h>
+#include <TinyGPS++.h>
+#include <SoftwareSerial.h>
 
 class GPS
-    : public Adafruit_GPS
+    : public TinyGPSPlus
 {
 public:
-  static GPS &getInst(SoftwareSerial &s);
+  GPS(SoftwareSerial *s) : TinyGPSPlus()
+  {
+    this->s = s;
+    this->first_gps = true;
+  }
   void init(void);
 
   void update(void);
@@ -22,10 +27,7 @@ public:
   bool first_gps;
 
 private:
-  GPS(SoftwareSerial &s) : Adafruit_GPS(&s)
-  {
-    this->first_gps = true;
-  }
+  SoftwareSerial *s;
   void dms_to_dec(void);
 };
 

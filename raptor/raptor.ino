@@ -39,9 +39,3 @@ void loop()
     //     raptor->flight_state = 2;
     // }
 }
-
-// Interrupt is called once a millisecond, looks for any new GPS data, and stores it
-SIGNAL(TIMER0_COMPA_vect)
-{
-    char c = raptor->environment->gps->read();
-}
