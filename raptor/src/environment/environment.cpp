@@ -5,8 +5,13 @@
 */
 #include "environment.h"
 
-/* PUBLIC METHODS */
+#define BNO_DELAY 10
+#define GPS_DELAY 100
 
+static long bno_time = 0;
+static long gps_time = 0;
+
+/* PUBLIC METHODS */
 /*
  *
  */
@@ -23,7 +28,7 @@ Environment *Environment::getInst()
 /*
  * initializes all sensors, returns false if any initializations fail return false
  */
-bool Environment::init(bool set_baseline)
+bool Environment::init()
 {
     this->gps->init();
     return this->bno->init();
@@ -34,11 +39,16 @@ bool Environment::init(bool set_baseline)
  */
 bool Environment::update()
 {
-    this->gps->update();
-    if (this->bno->update())
-        return true;
-    else
-        return false;
+    if (time_elapsed - gps_time > GPS_DELAY)
+    {
+        this->gps->update();
+    }
+
+    if (time_elapsed - bno_time > BNO_DELAY)
+    {
+        return this->bno->update();
+    }
+    return false;
 }
 
 /*

@@ -8,7 +8,6 @@
 
 #include "guidance/pilot/pilot.h"
 #include "environment/environment.h"
-#include "guidance/drivers/eeprom/eeprom.h"
 
 class Raptor
 {
@@ -21,22 +20,18 @@ public:
   void descent();
   void landed();
 
-  void sensor_demo();
-
   Environment *environment;
   uint8_t flight_state = 0; // current flight state
 
 private:
   void startup_sequence();
-  void blink_led(int length);
+
   void print_data();
-  void beep(int length, bool blink = false);
+  void beep(int length);
 
   Pilot *pilot;
-  Prom *eeprom;
   Logger *logger;
 
-  long fly_time = 0;    // amount of time passed between flight controlling
   bool didwake = false; // whether or not we have woken the pilot yet
 
   const float GROUND_ALT = 15.24;  // altitude to transition to FS1 [ASCENT] or FS3 [LANDED], =50ft
@@ -45,13 +40,6 @@ private:
   const float TARGET_LONG = -86.633730;
   const float TARGET_LAT = 34.722988; // HARD CODED TARGET COORDINATES
 
-  const unsigned int DEPLOY_DELAY = 1200; // time to wait between deployment and guidance [ms]
-  const unsigned int FLY_DELAY = 1000;    // time to wait between calling fly [ms]
-
-  const uint8_t BZZ_DTA = 11;  // buzzer
-  const uint8_t LEDS_DTA = 12; // external flight LEDs
-
-  const uint8_t SET_BTN = 7; // eeprom write button
+  const uint8_t BZZ_DTA = 3; // buzzer
 };
-
 #endif

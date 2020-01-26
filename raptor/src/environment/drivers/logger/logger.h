@@ -14,11 +14,13 @@ class Logger
 public:
     static Logger *getInst();
     void init(void);
+    void write(String data);
 
     File file;
 
 private:
     Logger() {}
+    char filename[32];
 };
 
 #endif

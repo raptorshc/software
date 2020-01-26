@@ -16,16 +16,17 @@ class Environment
 public:
   static Environment *getInst();
 
-  bool init(bool set_baseline);
+  bool init();
   bool update();
 
   float correct_alt(uint8_t flight_state);
 
-  bool landing_check(void);
   bool cutdown_check(void);
 
   BNO *bno;
   GPS *gps;
+
+  elapsedMillis time_elapsed;
 
 private:
   Environment(); // constructor

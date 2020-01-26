@@ -13,7 +13,17 @@
  */
 void GPS::init(void)
 {
+  // ****TODO**** This needs to be changed or corrected when we try this again
   this->s->begin(9600);
+  // delay(100)
+  // this->s->write("$PMTK220,100*2F<CR><LF>");
+  // this->s->write("$PMTK251,115200*27<CR><LF>");
+  // delay(100);
+  // this->s->end();
+  // delay(100);
+  // this->s->begin(115200);
+  
+
 }
 
 /*

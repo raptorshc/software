@@ -5,6 +5,7 @@
 */
 #include "bno.h"
 #include <Adafruit_BNO055.h>
+#include <Streaming.h>
 
 /*
  *
@@ -39,4 +40,44 @@ bool BNO::init(void)
 bool BNO::update()
 {
     return this->getEvent(&this->data);
+}
+/*
+* Uses linear acceleration to see if the rocket is descending
+*/
+bool BNO::goingDown()
+{
+    imu::Vector<3> accel = this->getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
+
+    // For debugging
+    Serial << "X: " << accel.x() << "Y: " << accel.y() << "Z: " << accel.z() << endl;
+
+    // Need to figure out how this is    going to go in the rocket as well as the value
+    // It may just be zero and depending on the orientation it is positive or negative
+
+    if (accel.y() < MIN_ACCEL)
+    {
+        return false;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+/*
+* Returns the raw linear acceleration values 
+*/
+float BNO::accelX()
+{
+    return this->getVector(Adafruit_BNO055::VECTOR_LINEARACCEL).x();
+}
+
+float BNO::accelY()
+{
+    return this->getVector(Adafruit_BNO055::VECTOR_LINEARACCEL).y();
+}
+
+float BNO::accelZ()
+{
+    return this->getVector(Adafruit_BNO055::VECTOR_LINEARACCEL).z();
 }

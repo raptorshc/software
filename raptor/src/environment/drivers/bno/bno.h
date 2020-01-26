@@ -16,11 +16,17 @@ public:
   static BNO *getInst();
   bool init(void);
   bool update(void);
+  bool goingDown();
+  float accelX();
+  float accelY();
+  float accelZ();
 
   sensors_event_t data;
 
 private:
   BNO() : Adafruit_BNO055(55) {}
+  const float MIN_ACCEL = 1; // The min acceleration before we assume we are now going down
+  // Also need to know what direction that is going to be huh?
 };
 
 #endif

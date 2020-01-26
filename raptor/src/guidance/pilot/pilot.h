@@ -6,7 +6,6 @@
 #ifndef PILOT_h
 #define PILOT_h
 
-#include "pathfinder.h"
 #include <Servo.h>
 
 class Pilot
@@ -14,8 +13,7 @@ class Pilot
 public:
 	static Pilot *getInst();
 
-	void wake(Coordinate current, Coordinate target);
-	void fly(float curr_angle);
+	void fly(float curr_angle, float desired_heading);
 
 	/* Mutators */
 	void servo_test(void);
@@ -27,13 +25,8 @@ public:
 
 private:
 	Pilot();
-	float desired_heading;
 
 	Servo *servo;
-	Pathfinder *p;
-
-	int find_turn(float curr_angle);
-	void turn(bool direction);
 
 	enum turn_state
 	{
@@ -42,12 +35,15 @@ private:
 		straight = 2
 	};
 
+	turn_state find_turn(float curr_angle, float desired_heading);
+	void turn(bool direction);
+
 	turn_state current_turn; // uses ContinuousServo settings for 0 (left) and 1 (right), 2 is straight
 	void turn(turn_state direction);
 
-	static const int SRVO_STRAIGHT = 1500,
-					 SRVO_RIGHT = 1000,
-					 SRVO_LEFT = 2000;
+	static const int SRVO_STRAIGHT = 90,
+					 SRVO_RIGHT = 20,
+					 SRVO_LEFT = 170;
 };
 
 #endif

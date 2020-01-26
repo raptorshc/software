@@ -24,25 +24,12 @@ Pilot *Pilot::getInst()
 }
 
 /*
- *  Method to wake the pilot, giving it the current and target coordinates.
- */
-void Pilot::wake(Coordinate current, Coordinate target)
-{
-    this->p = new Pathfinder(current, target);
-    this->p->find_path();
-    desired_heading = p->get_angle();
-
-    Serial.print("Desired heading:");
-    Serial.print(desired_heading);
-    Serial.print("\n");
-}
-
-/*
  *  fly will ..
  */
-void Pilot::fly(float curr_angle)
+void Pilot::fly(float curr_angle, float desired_heading)
 {
-    turn_state target_turn = find_turn(curr_angle);
+
+    turn_state target_turn = find_turn(curr_angle, desired_heading);
     if (target_turn != current_turn)
     {
         turn(target_turn);
@@ -70,6 +57,7 @@ int Pilot::get_turn(void)
  */
 void Pilot::servo_test(void)
 {
+    Serial.println("Beginning servo test");
     turn(turn_state::left);
     delay(500);
     turn(turn_state::straight);
@@ -97,13 +85,14 @@ Pilot::Pilot()
 {
     this->current_turn = turn_state::straight;
     servo = new Servo();
+    servo->attach(SRVO_DTA);
 }
 
 /*
  * find_turn takes the current angle and finds the correct
  * turn based on basic heading math
  */
-int Pilot::find_turn(float curr_angle)
+Pilot::turn_state Pilot::find_turn(float curr_angle, float desired_heading)
 {
     float alpha_angle, beta_angle;
 
@@ -138,25 +127,25 @@ int Pilot::find_turn(float curr_angle)
 void Pilot::turn(turn_state direction)
 {
     if (direction == this->current_turn)
+    {
         return;
-    servo->attach(SRVO_DTA);
+    }
     if (direction == turn_state::straight)
     {
-        servo->writeMicroseconds(this->SRVO_STRAIGHT); // straighten out the servos
+        servo->write(this->SRVO_STRAIGHT); // straighten out the servos
         this->current_turn = turn_state::straight;
         Serial.print("Turn: straight\n");
     }
     else if (direction == turn_state::right)
     {
-        servo->writeMicroseconds(this->SRVO_RIGHT);
+        servo->write(this->SRVO_RIGHT);
         this->current_turn = turn_state::right;
         Serial.print("Turn: right\n");
     }
     else
     { // left turn
-        servo->writeMicroseconds(this->SRVO_LEFT);
+        servo->write(this->SRVO_LEFT);
         this->current_turn = turn_state::left;
         Serial.print("Turn: left\n");
     }
-    servo->detach(); // detach to save power
 }

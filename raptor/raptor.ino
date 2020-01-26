@@ -20,17 +20,16 @@ void setup()
 
 void loop()
 {
-    raptor->sensor_demo();
     // switch (raptor->flight_state)
     // {
     // case 0:
-    // raptor->launch();
+    //     raptor->launch();
     //     break;
     // case 1:
     //     raptor->ascent();
     //     break;
     // case 2:
-    //     raptor->descent();
+    raptor->descent();
     //     break;
     // case 3:
     //     raptor->landed();
