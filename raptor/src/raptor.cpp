@@ -8,17 +8,26 @@
 
 #include "test/test.h"
 
-#define PRINT_DELAY 100
+#define PRINT_DELAY 500 // [TODO: switch to 120 for flight
 #define FLY_DELAY 500
+
+#define MIN_DESCENT_ALT 10 // minimum descent altitude to prevent early transition
+#define GROUND_ALT 10      // altitude to transition to landed state
+
+#define TARGET_LONG -86.659917
+#define TARGET_LAT 36.241586 // HARD CODED TARGET COORDINATES
+
+#define BZZ_DTA 3 // buzzer
 
 static long print_time = 0; // last time we printed data
 static long fly_time = 0;   // amount of time passed between flight controlling
 
-/*
- * Arduino setup function, first function to be run.
- */
 Raptor::Raptor()
 {
+    Serial.begin(115200);
+    delay(10);
+    Serial.println("Terst");
+    delay(10);
     this->environment = Environment::getInst();
     pilot = Pilot::getInst();
     logger = Logger::getInst();
@@ -42,26 +51,12 @@ void Raptor::init(void)
                    "X,Y,Z,Time\n")); // data header
 }
 
-void Raptor::launch()
-{
-    if (environment->gps->altitude.meters() > GROUND_ALT)
-    { // at 50ft (15.24 meters), transition to FS1 [ASCENT]
-        this->flight_state = 1;
-    }
-
-    environment->update();
-    if (this->environment->time_elapsed - print_time > PRINT_DELAY + 900)
-    {
-        print_time = this->environment->time_elapsed;
-        print_data();
-    }
-}
-
 void Raptor::ascent()
 {
-    if (environment->gps->altitude.meters() > CUTDOWN_ALT)
-    { // at the cutdown altitude perform cutdown, deploy, and transition to FS2 [DESCENT]
+    if ((environment->gps->agl > MIN_DESCENT_ALT) && this->environment->bno->goingDown())
+    { // at the minimum altitude and bno detects we're going down transition to FS1 [DESCENT]
         this->flight_state = 2;
+        // Serial << "\n!!!! DESCENT !!!!\n";
     }
 
     environment->update();
@@ -84,12 +79,12 @@ void Raptor::descent()
         fly_time = 0;
     }
 
-    // if (environment->gps->altitude.meters() < GROUND_ALT)
-    // { // at 50ft (15.24 meters), transition to FS3 [LANDED]
-    //     pilot->sleep();
-    //     this->flight_state = 3;
-    //     Serial << "\n!!!! LANDED !!!!\n";
-    // }
+    if (environment->gps->agl < GROUND_ALT)
+    { // at 50ft (15.24 meters), transition to FS3 [LANDED]
+        pilot->sleep();
+        this->flight_state = 3;
+        Serial << "\n!!!! LANDED !!!!\n";
+    }
 
     environment->update();
     if (this->environment->time_elapsed - print_time > PRINT_DELAY)
@@ -101,15 +96,24 @@ void Raptor::descent()
 
 void Raptor::landed()
 {
-    // in the landed state, and buzzer every 2 seconds, then print data
-    analogWrite(BZZ_DTA, 0);
-    delay(200);
-    analogWrite(BZZ_DTA, 200);
-
+    int bzz_status = 0;
+    this->environment->update();
     if (this->environment->time_elapsed - print_time > PRINT_DELAY + 900)
     {
         print_time = this->environment->time_elapsed;
         print_data();
+
+        // buzz
+        if (bzz_status > 0)
+        {
+            analogWrite(BZZ_DTA, 0);
+            bzz_status = 0;
+        }
+        else
+        {
+            bzz_status = 0;
+            analogWrite(BZZ_DTA, 200);
+        }
     }
 }
 
@@ -121,12 +125,17 @@ void Raptor::print_data()
     /* Let's spray the serial port with a hose of data */
     char data[256];
     sprintf(data, "----------\nTIME (elapsed, real): %lu,%lu\n"
-                  "GPS (lat, long, heading, alt): %f,%f,%f,%f\n"
-                  "ORIENTATION (x, y, z): %f,%f,%f\n"
-                  "LINEAR ACCEL (x, y, z): %f,%f,%f\n",
+                  "GPS (lat, long, heading): %.6f,%.6f,%.2f\n"
+                  "ALT (agl, absolute, age): %.2f,%.2f\n"
+                  "SPEED (mph): %.2f\tSATELLITES: %lu\n"
+                  "ORIENTATION (x, y, z): %.4f,%.4f,%.4f\n"
+                  "LINEAR ACCEL (x, y, z): %.4f,%.4f,%.4f\n",
             (unsigned long)(this->environment->time_elapsed), environment->gps->time.value(),
-            environment->gps->location.lat(), environment->gps->location.lng(), environment->gps->course.deg(), environment->gps->altitude.meters(),
-            environment->bno->data.orientation.x, environment->bno->data.orientation.y, environment->bno->data.orientation.z,
+            environment->gps->location.lat(), environment->gps->location.lng(), environment->gps->course.deg(),
+            environment->gps->agl, environment->gps->altitude.meters(), environment->gps->altitude.age(),
+            environment->gps->speed.mph(), environment->gps->satellites.value(),
+            environment->bno->data.orientation.x,
+            environment->bno->data.orientation.y, environment->bno->data.orientation.z,
             environment->bno->accelX(), environment->bno->accelY(), environment->bno->accelZ());
 
     Serial << data << "\n";
@@ -140,6 +149,12 @@ void Raptor::print_data()
  */
 void Raptor::startup_sequence(void)
 {
+    // Serial << "beep\n";
+    // for (int i = 0; i < 15; i++)
+    // {
+    //     beep(1000);
+    //     delay(500);
+    // }
     // initialize sensors, then indicate if we were successful or not
     if (environment->init())
     { // if the initialization was successful and we're in flight state 0 blink 5 times

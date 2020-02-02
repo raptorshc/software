@@ -6,7 +6,7 @@
 #include "environment.h"
 
 #define BNO_DELAY 10
-#define GPS_DELAY 100
+#define GPS_DELAY 10
 
 static long bno_time = 0;
 static long gps_time = 0;
@@ -60,7 +60,6 @@ Environment::Environment()
     this->bno = BNO::getInst();
 
     /* GPS */
-    SoftwareSerial *gps_serial = new SoftwareSerial(0, 1); // GPS serial comm pins
-    //this->gps = new GPS(*gps_serial);
-    this->gps = new GPS(gps_serial);
+    //SoftwareSerial *gps_serial = new SoftwareSerial(0, 1); // GPS serial comm pins
+    this->gps = new GPS();
 }

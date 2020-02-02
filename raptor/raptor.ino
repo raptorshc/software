@@ -13,6 +13,7 @@ Raptor *raptor;
 
 void setup()
 {
+
     // wdt_enable(WDTO_2S); // TODO: WATCHDOG STUFF
     raptor = new Raptor();
     raptor->init();
@@ -23,18 +24,15 @@ void loop()
     // switch (raptor->flight_state)
     // {
     // case 0:
-    //     raptor->launch();
+    raptor->ascent();
     //     break;
     // case 1:
-    //     raptor->ascent();
+    //     raptor->descent();
     //     break;
     // case 2:
-    raptor->descent();
-    //     break;
-    // case 3:
     //     raptor->landed();
     //     break;
     // default:
-    //     raptor->flight_state = 2;
+    // raptor->flight_state = 2;
     // }
 }

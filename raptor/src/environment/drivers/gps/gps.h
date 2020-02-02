@@ -14,10 +14,11 @@ class GPS
     : public TinyGPSPlus
 {
 public:
-  GPS(SoftwareSerial *s) : TinyGPSPlus()
+  GPS() : TinyGPSPlus()
   {
-    this->s = s;
+
     this->first_gps = true;
+    this->agl = 0;
   }
   void init(void);
 
@@ -27,7 +28,6 @@ public:
   bool first_gps;
 
 private:
-  SoftwareSerial *s;
   void dms_to_dec(void);
 };
 

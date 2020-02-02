@@ -41,6 +41,7 @@ bool BNO::update()
 {
     return this->getEvent(&this->data);
 }
+
 /*
 * Uses linear acceleration to see if the rocket is descending
 */
@@ -49,7 +50,7 @@ bool BNO::goingDown()
     imu::Vector<3> accel = this->getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
 
     // For debugging
-    Serial << "X: " << accel.x() << "Y: " << accel.y() << "Z: " << accel.z() << endl;
+    // Serial << "X: " << accel.x() << "Y: " << accel.y() << "Z: " << accel.z() << endl;
 
     // Need to figure out how this is    going to go in the rocket as well as the value
     // It may just be zero and depending on the orientation it is positive or negative
