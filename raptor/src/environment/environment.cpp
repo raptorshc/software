@@ -42,10 +42,12 @@ bool Environment::update()
     if (time_elapsed - gps_time > GPS_DELAY)
     {
         this->gps->update();
+        gps_time = time_elapsed;
     }
 
     if (time_elapsed - bno_time > BNO_DELAY)
     {
+        bno_time = time_elapsed;
         return this->bno->update();
     }
     return false;

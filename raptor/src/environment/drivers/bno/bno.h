@@ -27,6 +27,9 @@ private:
   BNO() : Adafruit_BNO055(55) {}
   const float MIN_ACCEL = 1; // The min acceleration before we assume we are now going down
   // Also need to know what direction that is going to be huh?
+  float accel_x[49];
+  float accel_y[49];
+  float accel_z[49];
 };
 
 #endif

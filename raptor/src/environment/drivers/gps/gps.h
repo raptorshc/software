@@ -18,13 +18,16 @@ public:
   {
 
     this->first_gps = true;
+    this->init_alt = 0;
+    this->init_lat = 0;
+    this->init_long = 0;
     this->agl = 0;
   }
   void init(void);
-
   void update(void);
 
   float init_alt, agl; // initial altitude and above ground level altitude
+  double init_lat, init_long;
   bool first_gps;
 
 private:

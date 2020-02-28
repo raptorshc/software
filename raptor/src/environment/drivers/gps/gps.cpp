@@ -6,7 +6,7 @@
 */
 #include "gps.h"
 #include "math.h"
-#define PMTK_SET_NMEA_OUTPUT_RMCGGA "$PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*28\r\n"
+#define PMTK_SET_NMEA_OUTPUT_RMCGGA "$PMTK314,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*28\r\n"
 #define PMTK_SET_NMEA_UPDATE_10HZ "$PMTK220,100*2F\r\n"
 
 /*
@@ -15,13 +15,16 @@
  */
 void GPS::init(void)
 {
-  // ****TODO**** This needs to be changed or corrected when we try this again
   Serial1.begin(9600);
+
   Serial1.println("$PMTK251,115200*1F");
   Serial1.end();
-
+  delay(10);
   Serial1.begin(115200);
+
+  delay(10);
   Serial1.println(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+  delay(10);
   Serial1.println(PMTK_SET_NMEA_UPDATE_10HZ);
 }
 
@@ -31,18 +34,24 @@ void GPS::init(void)
  */
 void GPS::update(void)
 {
+  char c;
   while (Serial1.available() > 0)
   {
-    // Serial.print(Serial1.read());
-    this->encode(Serial1.read());
+    c = Serial1.read();
+    // Serial.print(c);
+    this->encode(c);
   }
 
   if (this->altitude.isUpdated())
   { // if we have a new altitude, update agl
     if (this->first_gps)
-    { // set the ground level altitude on our first reading
+    { // modify configuration, set ground level altitude and launch point on first reading
+      Serial.println("first gps");
+
       this->first_gps = false;
       this->init_alt = this->altitude.meters();
+      this->init_lat = this->location.lng();
+      this->init_long = this->location.lat();
     }
 
     // correct the coordinates to decimal-degrees and altitude to AGL

@@ -24,10 +24,6 @@ static long fly_time = 0;   // amount of time passed between flight controlling
 
 Raptor::Raptor()
 {
-    Serial.begin(115200);
-    delay(10);
-    Serial.println("Terst");
-    delay(10);
     this->environment = Environment::getInst();
     pilot = Pilot::getInst();
     logger = Logger::getInst();
@@ -38,17 +34,15 @@ void Raptor::init(void)
     Serial.begin(115200);
     this->environment->time_elapsed = 0;
 
-    Serial << "begin init!\n";
-
     /* Buzzer and LEDs */
     pinMode(BZZ_DTA, OUTPUT); // Set buzzer to output
 
     startup_sequence();
 
-    delay(10);
-    Serial.print(F("TIME,"
-                   "LATITUDE,LONGITUDE,ANGLE,GPS_ALT,"
-                   "X,Y,Z,Time\n")); // data header
+    logger->write("ELAPSED TIME,REAL TIME,GPS LAT,GPS LONG,GPS HEADING,AGL,"
+                  "ABSOLUTE ALT,ALT AGE,SPEED,SATS,ORIENTATION X,ORIENTATION Y,"
+                  "ORIENTATION Z,LINEAR ACCEL X,LINEAR ACCEL Y,LINEAR ACCEL Z,PILOT TURN,"
+                  "PILOT SERVO,INIT ALT,INIT LAT,INIT LONG\n"); // data header
 }
 
 void Raptor::ascent()
@@ -56,12 +50,24 @@ void Raptor::ascent()
     if ((environment->gps->agl > MIN_DESCENT_ALT) && this->environment->bno->goingDown())
     { // at the minimum altitude and bno detects we're going down transition to FS1 [DESCENT]
         this->flight_state = 2;
-        // Serial << "\n!!!! DESCENT !!!!\n";
+        Serial << "\n!!!! DESCENT !!!!\n";
     }
 
     environment->update();
     if (this->environment->time_elapsed - print_time > PRINT_DELAY)
     {
+        if (this->environment->gps->agl < MIN_DESCENT_ALT)
+        {
+            if (this->environment->gps->first_gps)
+            {
+                beep(400);
+            }
+            else
+            {
+                beep(100);
+            }
+        }
+
         print_time = this->environment->time_elapsed;
         print_data();
     }
@@ -75,7 +81,7 @@ void Raptor::descent()
         pilot->fly(environment->gps->course.deg(),
                    environment->gps->courseTo(
                        environment->gps->location.lat(), environment->gps->location.lng(),
-                       TARGET_LAT, TARGET_LONG)); // the pilot just needs our current angle to do his calculations
+                       environment->gps->init_lat, environment->gps->init_long)); // the pilot just needs our current angle to do his calculations
         fly_time = 0;
     }
 
@@ -123,22 +129,45 @@ void Raptor::landed()
 void Raptor::print_data()
 {
     /* Let's spray the serial port with a hose of data */
-    char data[256];
+    char data[1024];
     sprintf(data, "----------\nTIME (elapsed, real): %lu,%lu\n"
-                  "GPS (lat, long, heading): %.6f,%.6f,%.2f\n"
-                  "ALT (agl, absolute, age): %.2f,%.2f\n"
+                  "GPS (lat, long, heading): %.6f,%.6f,%.2lf\n"
+                  "ALT (agl, absolute, age): %.2f,%.2f,%lu\n"
                   "SPEED (mph): %.2f\tSATELLITES: %lu\n"
                   "ORIENTATION (x, y, z): %.4f,%.4f,%.4f\n"
-                  "LINEAR ACCEL (x, y, z): %.4f,%.4f,%.4f\n",
+                  "LINEAR ACCEL (x, y, z): %.4f,%.4f,%.4f\n"
+                  "PILOT (turn, servo): %d, %d\n"
+                  "INIT (alt, lat, long): %f, %lf, %lf\n",
             (unsigned long)(this->environment->time_elapsed), environment->gps->time.value(),
             environment->gps->location.lat(), environment->gps->location.lng(), environment->gps->course.deg(),
             environment->gps->agl, environment->gps->altitude.meters(), environment->gps->altitude.age(),
             environment->gps->speed.mph(), environment->gps->satellites.value(),
             environment->bno->data.orientation.x,
             environment->bno->data.orientation.y, environment->bno->data.orientation.z,
-            environment->bno->accelX(), environment->bno->accelY(), environment->bno->accelZ());
+            environment->bno->accelX(), environment->bno->accelY(), environment->bno->accelZ(),
+            this->pilot->get_turn(), this->pilot->servo_status(),
+            this->environment->gps->init_alt, this->environment->gps->init_lat, this->environment->gps->init_long);
 
     Serial << data << "\n";
+
+    sprintf(data, "%lu,%lu,"
+                  "%.6f,%.6f,%.2f,"
+                  "%.2f,%.2f,%.2f,"
+                  "%.2f,%lu,"
+                  "%.4f,%.4f,%.4f,"
+                  "%.4f,%.4f,%.4f,"
+                  "%d,%d,"
+                  "%f, %lf, %lf\n",
+            (unsigned long)(this->environment->time_elapsed), environment->gps->time.value(),
+            environment->gps->location.lat(), environment->gps->location.lng(), environment->gps->course.deg(),
+            environment->gps->agl, environment->gps->altitude.meters(), environment->gps->altitude.age(),
+            environment->gps->speed.mph(), environment->gps->satellites.value(),
+            environment->bno->data.orientation.x,
+            environment->bno->data.orientation.y, environment->bno->data.orientation.z,
+            environment->bno->accelX(), environment->bno->accelY(), environment->bno->accelZ(),
+            this->pilot->get_turn(), this->pilot->servo_status(),
+            this->environment->gps->init_alt, this->environment->gps->init_lat, this->environment->gps->init_long);
+
     logger->write(data);
 }
 
@@ -149,12 +178,6 @@ void Raptor::print_data()
  */
 void Raptor::startup_sequence(void)
 {
-    // Serial << "beep\n";
-    // for (int i = 0; i < 15; i++)
-    // {
-    //     beep(1000);
-    //     delay(500);
-    // }
     // initialize sensors, then indicate if we were successful or not
     if (environment->init())
     { // if the initialization was successful and we're in flight state 0 blink 5 times

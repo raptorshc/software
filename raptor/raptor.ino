@@ -21,18 +21,18 @@ void setup()
 
 void loop()
 {
-    // switch (raptor->flight_state)
-    // {
-    // case 0:
-    raptor->ascent();
-    //     break;
-    // case 1:
-    //     raptor->descent();
-    //     break;
-    // case 2:
-    //     raptor->landed();
-    //     break;
-    // default:
-    // raptor->flight_state = 2;
-    // }
+    switch (raptor->flight_state)
+    {
+    case 0:
+        raptor->ascent();
+        break;
+    case 1:
+        raptor->descent();
+        break;
+    case 2:
+        raptor->landed();
+        break;
+    default:
+        raptor->flight_state = 2;
+    }
 }

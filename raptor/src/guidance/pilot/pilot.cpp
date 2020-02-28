@@ -28,7 +28,6 @@ Pilot *Pilot::getInst()
  */
 void Pilot::fly(float curr_angle, float desired_heading)
 {
-
     turn_state target_turn = find_turn(curr_angle, desired_heading);
     if (target_turn != current_turn)
     {

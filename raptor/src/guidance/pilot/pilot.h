@@ -41,7 +41,7 @@ private:
 	turn_state current_turn; // uses ContinuousServo settings for 0 (left) and 1 (right), 2 is straight
 	void turn(turn_state direction);
 
-	static const int SRVO_STRAIGHT = 90,
+	static const int SRVO_STRAIGHT = 95,
 					 SRVO_RIGHT = 20,
 					 SRVO_LEFT = 170;
 };
