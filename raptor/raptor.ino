@@ -33,6 +33,6 @@ void loop()
         raptor->landed();
         break;
     default:
-        raptor->flight_state = 2;
+        raptor->flight_state = 1;
     }
 }

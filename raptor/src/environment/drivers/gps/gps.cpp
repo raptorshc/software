@@ -35,6 +35,7 @@ void GPS::init(void)
 void GPS::update(void)
 {
   char c;
+
   while (Serial1.available() > 0)
   {
     c = Serial1.read();
@@ -43,20 +44,32 @@ void GPS::update(void)
   }
 
   if (this->altitude.isUpdated())
-  { // if we have a new altitude, update agl
-    if (this->first_gps)
-    { // modify configuration, set ground level altitude and launch point on first reading
-      Serial.println("first gps");
-
-      this->first_gps = false;
-      this->init_alt = this->altitude.meters();
-      this->init_lat = this->location.lng();
-      this->init_long = this->location.lat();
+  { // passes only when we've gotten an altitude update from the last call
+    static float alts[10];
+    if (this->gps_num < 10)
+    { // collect and average the first 10 altitude readings for a ground level alt
+      alts[this->gps_num] = this->altitude.meters();
+      if (this->gps_num == 9)
+      { // on tenth reading collect launch location
+        this->init_lat = this->location.lng();
+        this->init_long = this->location.lat();
+      }
     }
+    else
+    {
+      if (this->init_alt != 0)
+      { // average the first 10 readings to get a (hopefully) more accurate ground level altitude
+        int temp_sum = 0;
+        for (int i = 0; i < 10; i++)
+        {
+          temp_sum += alts[i];
+        }
+        this->init_alt = temp_sum / 10;
+      }
 
-    // correct the coordinates to decimal-degrees and altitude to AGL
-    this->agl = this->altitude.meters() - this->init_alt;
-
-    // to-do, figure out decimal stuff
+      // calculate AGL
+      this->agl = this->altitude.meters() - this->init_alt;
+    }
+    this->gps_num++;
   }
 }

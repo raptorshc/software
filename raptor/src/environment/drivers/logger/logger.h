@@ -13,13 +13,17 @@ class Logger
 {
 public:
     static Logger *getInst();
-    void init(void);
-    void write(String data);
+    boolean init(void);
+    boolean write(String data);
 
     File file;
+    boolean last_write; // indicates success status of last write
 
 private:
-    Logger() {}
+    Logger()
+    {
+        this->last_write = true;
+    }
     char filename[32];
 };
 

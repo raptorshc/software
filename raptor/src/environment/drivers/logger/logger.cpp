@@ -22,7 +22,7 @@ Logger *Logger::getInst()
 /*
  * init checks for a valid SD card file name and creates a new file
  */
-void Logger::init(void)
+boolean Logger::init(void)
 {
     String filename = "data";
     int number = 0;
@@ -35,8 +35,7 @@ void Logger::init(void)
     if (!SD.begin(10))
     {
         Serial.println("Card failed, or not present");
-        // don't do anything more:
-        return;
+        return false;
     }
     Serial.println("card initialized.");
 
@@ -49,25 +48,29 @@ void Logger::init(void)
     if (!this->file)
     {
         Serial.println("Error opening file.");
+        return false;
     }
 
     this->file.close();
-    // maybe add error handling
+    return true;
 }
 
 /*
  * write opens the file, writes the data, then closes it to ensure the data is written
  */
-void Logger::write(String data)
+boolean Logger::write(String data)
 {
     this->file = SD.open(this->filename, FILE_WRITE);
     if (!this->file)
     {
         Serial.println("Error opening file.");
+        return false;
     }
     else
     {
         this->file.print(data);
     }
     this->file.close();
+    this->last_write = true;
+    return true;
 }

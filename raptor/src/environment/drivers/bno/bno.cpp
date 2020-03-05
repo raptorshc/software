@@ -55,7 +55,7 @@ bool BNO::goingDown()
     // Need to figure out how this is    going to go in the rocket as well as the value
     // It may just be zero and depending on the orientation it is positive or negative
 
-    if (accel.y() < MIN_ACCEL)
+    if (accel.x() < 0.5 && accel.x() > -0.5)
     {
         return false;
     }
