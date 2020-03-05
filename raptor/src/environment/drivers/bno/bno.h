@@ -16,7 +16,7 @@ public:
   static BNO *getInst();
   bool init(void);
   bool update(void);
-  bool goingDown();
+  bool apogee();
   float accelX();
   float accelY();
   float accelZ();

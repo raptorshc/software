@@ -45,18 +45,11 @@ bool BNO::update()
 /*
 * Uses linear acceleration to see if the rocket is descending
 */
-bool BNO::goingDown()
+bool BNO::apogee()
 {
     imu::Vector<3> accel = this->getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
-
-    // For debugging
-    // Serial << "X: " << accel.x() << "Y: " << accel.y() << "Z: " << accel.z() << endl;
-
-    // Need to figure out how this is    going to go in the rocket as well as the value
-    // It may just be zero and depending on the orientation it is positive or negative
-
     if (accel.x() < 0.5 && accel.x() > -0.5)
-    {
+    { // x points towards the nose cone, use roughly 0 to determine when we're at apogee
         return false;
     }
     else

@@ -11,6 +11,7 @@
 #include "drivers/gps/gps.h"
 #include "drivers/logger/logger.h"
 
+#define BMP_PRESENT // defined for new board, not for old
 class Environment
 {
 public:
@@ -25,6 +26,9 @@ public:
 
   BNO *bno;
   GPS *gps;
+#ifdef BMP_PRESENT
+  BMP *bmp;
+#endif
 
   elapsedMillis time_elapsed;
 

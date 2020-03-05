@@ -7,9 +7,15 @@
 
 #define BNO_DELAY 10
 #define GPS_DELAY 10
+#ifdef BMP_PRESENT
+#define BMP_DELAY 10
+#endif
 
 static long bno_time = 0;
 static long gps_time = 0;
+#ifdef BMP_PRESENT
+static long bmp_time = 0;
+#endif
 
 /* PUBLIC METHODS */
 /*
@@ -31,7 +37,13 @@ Environment *Environment::getInst()
 bool Environment::init()
 {
     this->gps->init();
+
+#ifndef BMP_PRESENT
     return this->bno->init();
+#endif
+#else
+    return this->bno->init() && this->bmp->init();
+#endif
 }
 
 /*
@@ -48,9 +60,23 @@ bool Environment::update()
     if (time_elapsed - bno_time > BNO_DELAY)
     {
         bno_time = time_elapsed;
-        return this->bno->update();
+        if (!this->bno->update())
+        {
+            return false;
+        }
     }
-    return false;
+
+#ifdef BMP_PRESENT
+    if (time_elapse - bmp_time > BMP_DELAY)
+    {
+        bmp_time = time_elapsed;
+        if (!this->bmp->update())
+        {
+            return false;
+        }
+    }
+#endif
+    return true;
 }
 
 /*
@@ -62,6 +88,10 @@ Environment::Environment()
     this->bno = BNO::getInst();
 
     /* GPS */
-    //SoftwareSerial *gps_serial = new SoftwareSerial(0, 1); // GPS serial comm pins
     this->gps = new GPS();
+
+/* BMP */
+#ifdef BMP_PRESENT
+    this->bmp = BMP::getInst();
+#endif
 }

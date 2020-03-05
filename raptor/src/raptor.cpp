@@ -39,13 +39,16 @@ void Raptor::init(void)
     this->logger->write("ELAPSED TIME,REAL TIME,GPS LAT,GPS LONG,GPS HEADING,AGL,"
                         "ABSOLUTE ALT,SPEED,SATS,ORIENTATION X,ORIENTATION Y,"
                         "ORIENTATION Z,LINEAR ACCEL X,LINEAR ACCEL Y,LINEAR ACCEL Z,PILOT TURN,"
+#ifdef BMP_PRESENT
+                        "BMP ALT, BMP PRES, BMP TEMP,"
+#endif
                         "PILOT SERVO,FLIGHT STATE,INIT ALT,INIT LAT,INIT LONG\n"); // data header
 }
 
 void Raptor::ascent()
 {
     environment->update();
-    if ((environment->gps->agl > MIN_DESCENT_ALT) && this->environment->bno->goingDown())
+    if ((environment->gps->agl > MIN_DESCENT_ALT) && this->environment->bno->apogee())
     { // at the minimum altitude and bno detects we're going down transition to FS1 [DESCENT]
         this->flight_state = 2;
         this->logger->write("\n!!!! DESCENT !!!!\n");
@@ -131,6 +134,9 @@ void Raptor::print_data()
                   "ORIENTATION (x, y, z): %.4f,%.4f,%.4f\n"
                   "LINEAR ACCEL (x, y, z): %.4f,%.4f,%.4f\n"
                   "PILOT (turn, servo, fs): %d, %d, %d\n"
+#ifdef BMP_PRESENT
+                  "BMP (ALT, PRES, TEMP): %.4f, %.4f, %.4f\n"
+#endif
                   "INIT (alt, lat, long): %f, %lf, %lf\n",
             (unsigned long)(this->environment->time_elapsed), environment->gps->time.value(),
             environment->gps->location.lat(), environment->gps->location.lng(), environment->gps->course.deg(),
@@ -140,6 +146,9 @@ void Raptor::print_data()
             environment->bno->data.orientation.y, environment->bno->data.orientation.z,
             environment->bno->accelX(), environment->bno->accelY(), environment->bno->accelZ(),
             this->pilot->get_turn(), this->pilot->servo_status(), this->flight_state,
+#ifdef BMP_PRESENT
+            this->environment->bmp->getAltitude(), this->environment->bmp->getPressure(), this->bmp->readTemperature(),
+#endif
             this->environment->gps->init_alt, this->environment->gps->init_lat, this->environment->gps->init_long);
 
     Serial << data << "\n";
@@ -150,8 +159,11 @@ void Raptor::print_data()
                   "%.2f,%lu,"
                   "%.4f,%.4f,%.4f,"
                   "%.4f,%.4f,%.4f,"
-                  "%d,%d,%d"
-                  "%f, %lf, %lf\n",
+                  "%d,%d,%d,"
+#ifdef BMP_PRESENT
+                  "%.4f,%.4f,%.4f,"
+#endif
+                  "%f,%lf,%lf\n",
             (unsigned long)(this->environment->time_elapsed), environment->gps->time.value(),
             environment->gps->location.lat(), environment->gps->location.lng(), environment->gps->course.deg(),
             environment->gps->agl, environment->gps->altitude.meters(),
@@ -160,6 +172,9 @@ void Raptor::print_data()
             environment->bno->data.orientation.y, environment->bno->data.orientation.z,
             environment->bno->accelX(), environment->bno->accelY(), environment->bno->accelZ(),
             this->pilot->get_turn(), this->pilot->servo_status(), this->flight_state,
+#ifdef BMP_PRESENT
+            this->environment->bmp->getAltitude(), this->environment->bmp->getPressure(), this->bmp->readTemperature(),
+#endif
             this->environment->gps->init_alt, this->environment->gps->init_lat, this->environment->gps->init_long);
 
     if (this->logger->write(data) == false)
@@ -195,7 +210,5 @@ void Raptor::startup_sequence(void)
  */
 void Raptor::beep(int length)
 {
-    analogWrite(BZZ_DTA, 200);
-    delay(length);
-    analogWrite(BZZ_DTA, 0);
+    tone(BZZ_DTA, 200, length); // turns on the buzzer at a frequency of 200 for length milliseconds
 }
