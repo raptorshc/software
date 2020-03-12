@@ -13,7 +13,6 @@ Raptor *raptor;
 
 void setup()
 {
-
     // wdt_enable(WDTO_2S); // TODO: WATCHDOG STUFF
     raptor = new Raptor();
     raptor->init();

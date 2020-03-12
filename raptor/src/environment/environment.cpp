@@ -7,15 +7,9 @@
 
 #define BNO_DELAY 10
 #define GPS_DELAY 10
-#ifdef BMP_PRESENT
-#define BMP_DELAY 10
-#endif
 
 static long bno_time = 0;
 static long gps_time = 0;
-#ifdef BMP_PRESENT
-static long bmp_time = 0;
-#endif
 
 /* PUBLIC METHODS */
 /*
@@ -37,19 +31,17 @@ Environment *Environment::getInst()
 bool Environment::init()
 {
     this->gps->init();
-
-#ifndef BMP_PRESENT
-    return this->bno->init();
-#endif
-#else
+#ifdef BMP_PRESENT
     return this->bno->init() && this->bmp->init();
+#else
+    return this->bno->init();
 #endif
 }
 
 /*
  *  updates/queries all sensors, returns false if any fail
  */
-bool Environment::update()
+void Environment::update()
 {
     if (time_elapsed - gps_time > GPS_DELAY)
     {
@@ -60,23 +52,66 @@ bool Environment::update()
     if (time_elapsed - bno_time > BNO_DELAY)
     {
         bno_time = time_elapsed;
-        if (!this->bno->update())
-        {
-            return false;
-        }
+        this->bno->update();
     }
+}
 
+void Environment::printable_data(char *data)
+{
+    char str[1024];
+    sprintf(data, "----------\nTIME (elapsed, real): %lu,%lu\n"
+                  "GPS (lat, long, heading): %.6f,%.6f,%.2lf\n"
+                  "ALT (agl, absolute): %.2f,%.2f\n"
+                  "SPEED (mph): %.2f\tSATELLITES: %lu\n"
+                  "ORIENTATION (x, y, z): %.4f,%.4f,%.4f\n"
+                  "LINEAR ACCEL (x, y, z): %.4f,%.4f,%.4f\n"
 #ifdef BMP_PRESENT
-    if (time_elapse - bmp_time > BMP_DELAY)
-    {
-        bmp_time = time_elapsed;
-        if (!this->bmp->update())
-        {
-            return false;
-        }
-    }
+                  "BMP (pres, alt): %.4f, %.4f\n"
 #endif
-    return true;
+                  "INIT (alt, lat, long): %f, %lf, %lf\n",
+            (unsigned long)(this->time_elapsed),
+            this->gps->time.value(),
+            this->gps->location.lat(), this->gps->location.lng(), this->gps->course.deg(),
+            this->gps->agl, this->gps->altitude.meters(),
+            this->gps->speed.mph(), this->gps->satellites.value(),
+            this->bno->data.orientation.x,
+            this->bno->data.orientation.y, this->bno->data.orientation.z,
+            this->bno->accelX(), this->bno->accelY(), this->bno->accelZ(),
+#ifdef BMP_PRESENT
+            this->bmp->getPressure(), this->bmp->getAltitude(),
+#endif
+            this->gps->init_alt, this->gps->init_lat, this->gps->init_long);
+
+    strncpy(str, data, sizeof(str) / sizeof(str[0]));
+}
+
+void Environment::loggable_data(char *data)
+{
+    char str[1024];
+    sprintf(data, "%lu,%lu,"
+                  "%.6f,%.6f,%.2lf,"
+                  "%.2f,%.2f,"
+                  "%.2f,%lu,"
+                  "%.4f,%.4f,%.4f,"
+                  "%.4f,%.4f,%.4f,"
+#ifdef BMP_PRESENT
+                  "%.4f,%.4f,"
+#endif
+                  "%f,%lf,%lf",
+            (unsigned long)(time_elapsed),
+            this->gps->time.value(),
+            this->gps->location.lat(), this->gps->location.lng(), this->gps->course.deg(),
+            this->gps->agl, this->gps->altitude.meters(),
+            this->gps->speed.mph(), this->gps->satellites.value(),
+            this->bno->data.orientation.x,
+            this->bno->data.orientation.y, this->bno->data.orientation.z,
+            this->bno->accelX(), this->bno->accelY(), this->bno->accelZ(),
+#ifdef BMP_PRESENT
+            bmp->getPressure(), bmp->getAltitude(),
+#endif
+            gps->init_alt, gps->init_lat, gps->init_long);
+
+    strncpy(str, data, sizeof(str) / sizeof(str[0]));
 }
 
 /*
@@ -90,8 +125,8 @@ Environment::Environment()
     /* GPS */
     this->gps = new GPS();
 
-/* BMP */
 #ifdef BMP_PRESENT
+    /* BMP */
     this->bmp = BMP::getInst();
 #endif
 }

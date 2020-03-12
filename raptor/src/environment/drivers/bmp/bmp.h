@@ -15,7 +15,7 @@ class BMP
 {
 public:
   static BMP *getInst();
-  bool init(bool set_baseline);
+  bool init(bool set_baseline = true);
 
   float getPressure(void);
   float getAltitude(void);

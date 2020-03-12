@@ -54,16 +54,18 @@ void GPS::update(void)
         this->init_lat = this->location.lng();
         this->init_long = this->location.lat();
       }
+      Serial.println("Got initial packet.");
     }
     else
     {
-      if (this->init_alt != 0)
+      if (this->init_alt == 0)
       { // average the first 10 readings to get a (hopefully) more accurate ground level altitude
         int temp_sum = 0;
         for (int i = 0; i < 10; i++)
         {
           temp_sum += alts[i];
         }
+        Serial.println(temp_sum);
         this->init_alt = temp_sum / 10;
       }
 

@@ -36,13 +36,15 @@ void Raptor::init(void)
 
     startup_sequence();
 
-    this->logger->write("ELAPSED TIME,REAL TIME,GPS LAT,GPS LONG,GPS HEADING,AGL,"
-                        "ABSOLUTE ALT,SPEED,SATS,ORIENTATION X,ORIENTATION Y,"
-                        "ORIENTATION Z,LINEAR ACCEL X,LINEAR ACCEL Y,LINEAR ACCEL Z,PILOT TURN,"
-#ifdef BMP_PRESENT
-                        "BMP ALT, BMP PRES, BMP TEMP,"
-#endif
-                        "PILOT SERVO,FLIGHT STATE,INIT ALT,INIT LAT,INIT LONG\n"); // data header
+    this->logger->write("ELAPSED TIME,REAL TIME,"
+                        "GPS LAT,GPS LONG,GPS HEADING,"
+                        "AGL,ABSOLUTE ALT,"
+                        "SPEED,SATS,"
+                        "ORIENTATION X,ORIENTATION Y,ORIENTATION Z,"
+                        "LINEAR ACCEL X,LINEAR ACCEL Y,LINEAR ACCEL Z,"
+                        "PRESSURE, BMP ALT,"
+                        "INIT ALT,INIT LAT,INIT LONG,"
+                        "PILOT TURN,PILOT SERVO,FLIGHT STATE\n"); // data header
 }
 
 void Raptor::ascent()
@@ -59,12 +61,12 @@ void Raptor::ascent()
         print_time = this->environment->time_elapsed;
         if (this->environment->gps->gps_num == 0)
         { // beep at a slower rate when we have yet to acquire gps fix
-            beep(400);
+            beep(1000);
         }
         else
         { // only log data once we've gotten a gps packet
+            beep(200);
             print_data();
-            beep(100);
         }
     }
 }
@@ -127,59 +129,24 @@ void Raptor::print_data()
 {
     /* Let's spray the serial port with a hose of data */
     char data[1024];
-    sprintf(data, "----------\nTIME (elapsed, real): %lu,%lu\n"
-                  "GPS (lat, long, heading): %.6f,%.6f,%.2lf\n"
-                  "ALT (agl, absolute): %.2f,%.2f\n"
-                  "SPEED (mph): %.2f\tSATELLITES: %lu\n"
-                  "ORIENTATION (x, y, z): %.4f,%.4f,%.4f\n"
-                  "LINEAR ACCEL (x, y, z): %.4f,%.4f,%.4f\n"
-                  "PILOT (turn, servo, fs): %d, %d, %d\n"
-#ifdef BMP_PRESENT
-                  "BMP (ALT, PRES, TEMP): %.4f, %.4f, %.4f\n"
-#endif
-                  "INIT (alt, lat, long): %f, %lf, %lf\n",
-            (unsigned long)(this->environment->time_elapsed), environment->gps->time.value(),
-            environment->gps->location.lat(), environment->gps->location.lng(), environment->gps->course.deg(),
-            environment->gps->agl, environment->gps->altitude.meters(),
-            environment->gps->speed.mph(), environment->gps->satellites.value(),
-            environment->bno->data.orientation.x,
-            environment->bno->data.orientation.y, environment->bno->data.orientation.z,
-            environment->bno->accelX(), environment->bno->accelY(), environment->bno->accelZ(),
-            this->pilot->get_turn(), this->pilot->servo_status(), this->flight_state,
-#ifdef BMP_PRESENT
-            this->environment->bmp->getAltitude(), this->environment->bmp->getPressure(), this->bmp->readTemperature(),
-#endif
-            this->environment->gps->init_alt, this->environment->gps->init_lat, this->environment->gps->init_long);
 
-    Serial << data << "\n";
+    this->environment->printable_data(data);
+    Serial << data
+           << "PILOT(turn, servo, fs): "
+           << this->pilot->get_turn() << ", "
+           << this->pilot->servo_status() << ", "
+           << this->flight_state << "\n";
 
-    sprintf(data, "%lu,%lu,"
-                  "%.6f,%.6f,%.2lf,"
-                  "%.2f,%.2f,"
-                  "%.2f,%lu,"
-                  "%.4f,%.4f,%.4f,"
-                  "%.4f,%.4f,%.4f,"
-                  "%d,%d,%d,"
-#ifdef BMP_PRESENT
-                  "%.4f,%.4f,%.4f,"
-#endif
-                  "%f,%lf,%lf\n",
-            (unsigned long)(this->environment->time_elapsed), environment->gps->time.value(),
-            environment->gps->location.lat(), environment->gps->location.lng(), environment->gps->course.deg(),
-            environment->gps->agl, environment->gps->altitude.meters(),
-            environment->gps->speed.mph(), environment->gps->satellites.value(),
-            environment->bno->data.orientation.x,
-            environment->bno->data.orientation.y, environment->bno->data.orientation.z,
-            environment->bno->accelX(), environment->bno->accelY(), environment->bno->accelZ(),
-            this->pilot->get_turn(), this->pilot->servo_status(), this->flight_state,
-#ifdef BMP_PRESENT
-            this->environment->bmp->getAltitude(), this->environment->bmp->getPressure(), this->bmp->readTemperature(),
-#endif
-            this->environment->gps->init_alt, this->environment->gps->init_lat, this->environment->gps->init_long);
-
+    this->environment->loggable_data(data);
     if (this->logger->write(data) == false)
     { // if we failed to write data, beep slowly
-        beep(500);
+        beep(2000);
+    }
+
+    sprintf(data, ",%d,%d,%d\n", this->pilot->get_turn(), this->pilot->servo_status(), this->flight_state);
+    if (this->logger->write(data) == false)
+    { // if we failed to write data, beep slowly
+        beep(2000);
     }
 }
 
@@ -200,7 +167,7 @@ void Raptor::startup_sequence(void)
     { // if the initialization was unsuccessful beep 15 times slowly
         for (int i = 0; i < 15; i++)
         {
-            beep(1000);
+            beep(2000);
         }
     }
 }
@@ -210,5 +177,22 @@ void Raptor::startup_sequence(void)
  */
 void Raptor::beep(int length)
 {
-    tone(BZZ_DTA, 200, length); // turns on the buzzer at a frequency of 200 for length milliseconds
+    static long init_time = 0;
+    static bool buzz_state = false;
+    long curr_time = 0;
+
+    curr_time = this->environment->time_elapsed;
+    if (curr_time - init_time >= length)
+    {
+        if (buzz_state)
+        {
+            analogWrite(BZZ_DTA, 200);
+        }
+        else
+        {
+            analogWrite(BZZ_DTA, 0);
+        }
+        init_time = this->environment->time_elapsed;
+        buzz_state = !buzz_state;
+    }
 }
